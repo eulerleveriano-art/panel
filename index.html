@@ -1,1904 +1,1097 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="dark">
-<title>C0</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<style>
-  :root {
-    color-scheme: dark;
-    box-sizing: border-box;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    --bg: #000000;
-    --surface: rgba(2, 10, 2, .88);
-    --surface-2: rgba(5, 20, 10, .95);
-    --line: #0d4a1c;
-    --line-bright: #1f9b3a;
-    --green: #39ff14;
-    --green-soft: #2bd10f;
-    --green-dim: #1f8f1f;
-    --amber: #ffd23f;
-    --red: #ff5252;
-    --glow: 0 0 6px rgba(57, 255, 20, .75), 0 0 18px rgba(57, 255, 20, .35);
-    --glow-soft: 0 0 4px rgba(57, 255, 20, .5);
-    --font: 'Share Tech Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Courier New', monospace;
-  }
-  html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
-  *, *::before, *::after { box-sizing: inherit; }
-  body {
-    margin: 0; min-height: 100%;
-    background: var(--bg); color: var(--green);
-    font-family: var(--font); font-size: 16px; line-height: 1.5;
-    text-shadow: var(--glow-soft);
-    -webkit-text-size-adjust: 100%;
-  }
-  body::after {
-    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 300;
-    background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,0) 2px, rgba(0,0,0,.26) 3px);
-  }
-  #rain { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; opacity: .17; pointer-events: none; }
-  a { color: inherit; text-decoration: none; }
-  button, input, select, textarea { font: inherit; color: inherit; }
-  :focus-visible { outline: 2px solid var(--green); outline-offset: 2px; box-shadow: var(--glow); }
-  [hidden] { display: none !important; }
-
-  /* ---------- Acceso ---------- */
-  #gate {
-    position: fixed; inset: 0; z-index: 100; background: transparent;
-    display: flex; align-items: center; justify-content: center;
-    padding: calc(env(safe-area-inset-top, 0px) + 10px) 10px calc(env(safe-area-inset-bottom, 0px) + 10px);
-  }
-  .orb { position: relative; width: min(94vw, 430px, 78vh); aspect-ratio: 1; display: grid; place-items: center; }
-  .orb svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 0 6px rgba(57,255,20,.7)); }
-  .spin-a { transform-origin: 50px 50px; animation: spin 40s linear infinite; }
-  .spin-b { transform-origin: 50px 50px; animation: spin 26s linear infinite reverse; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .orb form { position: relative; width: 63%; display: grid; gap: 8px; text-align: center; }
-  .orb h1 { margin: 0 0 2px; font-weight: 400; font-size: clamp(18px, 5vw, 22px); text-shadow: var(--glow); }
-  .orb .field { text-align: center; padding: 8px 10px; font-size: 16px; }
-  .orb .btn { padding: 8px 10px; }
-  #g-user { color: transparent; text-shadow: none; caret-color: transparent; }
-  #g-user::selection { background: transparent; color: transparent; }
-  #g-user.tick { border-color: var(--green); box-shadow: var(--glow); }
-  .orb .msg { min-height: 1.3em; font-size: 13px; line-height: 1.3; }
-  .orb.shake { animation: shake .35s; }
-  @keyframes shake { 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
-
-  /* ---------- Distribución de monitor ---------- */
-  .shell {
-    position: relative; z-index: 1;
-    display: grid; grid-template-columns: 178px minmax(0, 1fr) 274px; gap: 22px; align-items: start;
-    max-width: 1580px; margin: 0 auto; padding: 18px 22px 44px;
-  }
-  .rail, .side { position: sticky; top: 18px; display: grid; gap: 14px; }
-  .rail { border: 1px solid var(--line); background: var(--surface); padding: 16px; position: sticky; }
-  .logo { font-size: 32px; line-height: 1; text-shadow: var(--glow); }
-  .cursor { display: inline-block; width: .5em; height: .9em; background: var(--green); margin-left: 6px; vertical-align: -.08em; box-shadow: var(--glow); animation: blink 1.1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-  .clock { color: var(--green-dim); font-size: 14px; line-height: 1.35; text-shadow: none; }
-  .clock b { display: block; font-weight: 400; font-size: 26px; color: var(--green); text-shadow: var(--glow); }
-  .rail nav { display: grid; gap: 6px; margin: 4px 0; border: none; overflow: visible; }
-  .rail nav button {
-    background: none; border: 1px solid var(--line); border-left: 3px solid var(--line); padding: 9px 12px; cursor: pointer;
-    color: var(--green-dim); text-align: left; font-size: 20px; text-shadow: none;
-  }
-  .rail nav button:hover { color: var(--green); border-color: var(--line-bright); }
-  .rail nav button[aria-selected="true"] { color: var(--green); border-color: var(--line-bright); border-left-color: var(--green); background: var(--surface-2); text-shadow: var(--glow); box-shadow: var(--glow-soft); }
-
-  .main { min-width: 0; }
-  .boot { color: var(--green-dim); font-size: 14px; min-height: 1.5em; margin-bottom: 14px; display: flex; gap: 18px; flex-wrap: wrap; text-shadow: none; }
-  .boot .ok { color: var(--green); }
-
-  h2 { margin: 0 0 12px; font-weight: 400; font-size: 22px; text-shadow: var(--glow); }
-  .muted { color: var(--green-dim); text-shadow: none; }
-  p { margin: 0 0 10px; max-width: 70ch; }
-
-  .toolbar { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
-  .prompt { flex: 1; min-width: 220px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--line-bright); background: var(--surface); padding: 9px 14px; box-shadow: inset 0 0 18px rgba(57,255,20,.07); }
-  .prompt span { text-shadow: var(--glow); }
-  .prompt input { flex: 1; min-width: 0; background: none; border: none; outline: none; caret-color: var(--green); text-shadow: var(--glow-soft); }
-  .prompt input::placeholder { color: var(--green-dim); }
-  .prompt:focus-within { box-shadow: var(--glow), inset 0 0 18px rgba(57,255,20,.1); }
-  .cmd-out { min-height: 1.4em; font-size: 14px; color: var(--green-dim); margin-bottom: 14px; text-shadow: none; white-space: pre-wrap; }
-  .cmd-out .ok { color: var(--green); text-shadow: var(--glow-soft); }
-  .cmd-out .err { color: var(--red); }
-  .cmd-out .warn { color: var(--amber); }
-  /* Panic camouflage */
-  #panic-layer { position: fixed; inset: 0; z-index: 9999; background: #f3f3f3; color: #222; font-family: 'Segoe UI', system-ui, sans-serif; display: none; flex-direction: column; }
-  #panic-layer.active { display: flex; }
-  #panic-layer .pbar { background: #217346; color: #fff; padding: 6px 12px; font-size: 13px; display: flex; gap: 18px; align-items: center; }
-  #panic-layer .pgrid { flex: 1; display: grid; grid-template-columns: 40px repeat(12, 1fr); grid-template-rows: 24px repeat(22, 1fr); overflow: hidden; font-size: 11px; }
-  #panic-layer .pcell { border: 1px solid #d0d0d0; padding: 1px 3px; }
-  #panic-layer .ph { background: #e6e6e6; font-weight: 600; text-align: center; }
-  /* Radio bar */
-  .radio-bar { display: none; align-items: center; gap: 10px; padding: 6px 12px; border: 1px solid var(--line); background: var(--surface); margin-bottom: 12px; font-size: 14px; }
-  .radio-bar.on { display: flex; }
-  .radio-bar .eq { display: flex; gap: 2px; height: 14px; align-items: flex-end; }
-  .radio-bar .eq i { width: 3px; background: var(--green); display: block; animation: eq 0.6s ease-in-out infinite alternate; }
-  .radio-bar .eq i:nth-child(2) { animation-delay: .1s; }
-  .radio-bar .eq i:nth-child(3) { animation-delay: .2s; }
-  .radio-bar .eq i:nth-child(4) { animation-delay: .15s; }
-  @keyframes eq { from { height: 3px; } to { height: 14px; } }
-  /* Shredder overlay */
-  #shred { position: fixed; inset: 0; z-index: 260; background: rgba(0,0,0,.92); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
-  #shred.on { display: flex; }
-  #shred .sbar { width: min(80vw, 420px); height: 18px; border: 1px solid var(--red); background: #000; }
-  #shred .sbar s { display: block; height: 100%; width: 0; background: var(--red); box-shadow: 0 0 12px var(--red); transition: width .12s linear; }
-  .fs-hint { position: fixed; bottom: 8px; right: 14px; font-size: 12px; color: var(--green-dim); opacity: .55; z-index: 50; pointer-events: none; }
-  /* Track map */
-  .track-form { display: grid; grid-template-columns: 1.4fr 1fr auto auto; gap: 10px; margin-bottom: 12px; }
-  .track-wrap { display: grid; grid-template-columns: 1fr 200px; gap: 14px; align-items: stretch; margin-bottom: 12px; }
-  #worldmap { width: 100%; height: auto; border: 1px solid var(--line-bright); background: #020a02; display: block; box-shadow: inset 0 0 40px rgba(57,255,20,.06); }
-  .track-info { border: 1px solid var(--line); background: var(--surface); padding: 10px 12px; display: grid; gap: 6px; font-size: 13px; }
-  .track-info .row { display: flex; justify-content: space-between; gap: 8px; }
-  .track-info .row b { font-weight: 400; text-shadow: var(--glow); color: var(--green); }
-  .track-log { border: 1px solid var(--line); background: var(--surface); padding: 10px 12px; min-height: 70px; max-height: 140px; overflow: auto; font-size: 13px; color: var(--green-dim); display: grid; gap: 2px; margin-top: 12px; }
-  .track-log .hit { color: var(--green); text-shadow: var(--glow-soft); }
-  .track-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
-  .track-form { grid-template-columns: 1.6fr auto auto auto; }
-  @media (max-width: 900px) {
-    .track-form { grid-template-columns: 1fr; }
-    .track-wrap { grid-template-columns: 1fr; }
-  }
-
-  /* Módulos por categoría */
-  .cats { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; align-items: start; }
-  .mod { position: relative; border: 1px solid var(--line); background: var(--surface); padding-bottom: 14px; }
-  .mod::before, .mod::after { content: ''; position: absolute; width: 14px; height: 14px; border: 2px solid var(--green); filter: drop-shadow(0 0 4px rgba(57,255,20,.8)); pointer-events: none; }
-  .mod::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
-  .mod::after { bottom: -2px; right: -2px; border-left: none; border-top: none; }
-  .mod-h { display: flex; align-items: baseline; gap: 12px; padding: 8px 14px; border-bottom: 1px solid var(--line); background: linear-gradient(90deg, rgba(57,255,20,.12), transparent 70%); }
-  .mod-l { font-size: 32px; line-height: 1; text-shadow: var(--glow); }
-  .mod-h .add { margin-left: auto; align-self: center; padding: 1px 12px; font-size: 20px; line-height: 1.3; }
-  .cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px; padding: 14px 14px 0; }
-  .cw { position: relative; }
-  .card { display: grid; place-items: center; width: 100%; min-height: 54px; padding: 8px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; text-align: center; }
-  .card:hover, .card:focus-visible { border-color: var(--green); box-shadow: var(--glow); background: var(--surface-2); }
-  .card .n { font-size: 24px; letter-spacing: .06em; text-shadow: var(--glow); }
-  .card.enc { border-left: 3px solid var(--green); }
-  .card.note { border-style: dashed; border-left-style: solid; }
-  .cw .x { position: absolute; top: 1px; right: 2px; background: none; border: none; color: var(--green-dim); cursor: pointer; padding: 0 5px; font-size: 14px; line-height: 1.4; text-shadow: none; }
-  .cw .x:hover { color: var(--red); }
-  .empty { color: var(--green-dim); padding: 14px; text-shadow: none; }
-
-  .field { background: var(--bg); border: 1px solid var(--line-bright); padding: 9px 11px; min-width: 0; width: 100%; outline: none; text-shadow: var(--glow-soft); }
-  .field:focus { border-color: var(--green); box-shadow: var(--glow); }
-  .field::placeholder { color: var(--green-dim); }
-  textarea.field { resize: vertical; min-height: 110px; }
-
-  .btn { background: var(--bg); border: 1px solid var(--green); color: var(--green); padding: 9px 16px; cursor: pointer; text-shadow: var(--glow); box-shadow: var(--glow-soft); }
-  .btn:hover { background: var(--green); color: #000; text-shadow: none; box-shadow: var(--glow); }
-  .btn.danger { border-color: var(--red); color: var(--red); text-shadow: none; box-shadow: none; }
-  .btn.danger:hover { background: var(--red); color: #000; }
-  .btn.small { padding: 4px 10px; font-size: 14px; }
-  .btn.ghost { border-color: var(--line-bright); box-shadow: none; text-shadow: none; color: var(--green-soft); }
-  .btn.ghost:hover { color: #000; }
-  .btn[disabled] { opacity: .45; pointer-events: none; }
-
-  /* Archivo */
-  .stack { display: grid; gap: 10px; }
-  .msg { min-height: 1.5em; font-size: 14px; }
-  .msg.err { color: var(--red); text-shadow: none; }
-  .msg.warn { color: var(--amber); text-shadow: none; }
-  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
-  .drop { border: 1px dashed var(--line-bright); background: var(--surface); padding: 22px 14px; text-align: center; color: var(--green-dim); cursor: pointer; margin-bottom: 14px; text-shadow: none; }
-  .drop.over { border-color: var(--green); color: var(--green); box-shadow: var(--glow), inset 0 0 24px rgba(57,255,20,.12); }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
-  .chip { background: var(--bg); border: 1px solid var(--line); padding: 4px 12px; cursor: pointer; color: var(--green-dim); text-shadow: none; }
-  .chip[aria-pressed="true"] { border-color: var(--green); color: var(--green); text-shadow: var(--glow); box-shadow: var(--glow-soft); }
-  .linkform { display: grid; grid-template-columns: 2fr 1.2fr 1.4fr auto; gap: 10px; padding: 14px; border: 1px solid var(--line); background: var(--surface); margin-bottom: 14px; }
-  .files { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); background: var(--surface); }
-  .files li { display: grid; grid-template-columns: 92px 1fr auto; gap: 4px 14px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); }
-  .files li:last-child { border-bottom: none; }
-  .files .code { color: var(--green); text-shadow: var(--glow); grid-row: 1 / span 2; }
-  .files .fn { overflow-wrap: anywhere; grid-column: 2; }
-  .files .fm { grid-column: 2; color: var(--green-dim); font-size: 13px; text-shadow: none; overflow-wrap: anywhere; }
-  .files .fa { grid-column: 3; grid-row: 1 / span 2; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-
-  /* Ventanas emergentes */
-  .viewer { position: fixed; inset: 0; z-index: 250; background: rgba(0,0,0,.92); display: flex; flex-direction: column; padding: calc(env(safe-area-inset-top, 0px) + 14px) 14px calc(env(safe-area-inset-bottom, 0px) + 14px); }
-  .viewer .vh { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; }
-  .viewer .vb { flex: 1; overflow: auto; border: 1px solid var(--line-bright); background: var(--surface); padding: 12px; }
-  .viewer img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
-  .viewer pre { margin: 10px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .dlg { align-items: center; justify-content: center; }
-  .dbox { width: min(100%, 520px); border: 1px solid var(--green); background: var(--bg); padding: 16px; box-shadow: var(--glow); max-height: 100%; overflow: auto; }
-  .seg { display: flex; gap: 8px; }
-
-  /* Columna derecha */
-  .sb { border: 1px solid var(--line); background: var(--surface); }
-  .sb-h { padding: 6px 12px; border-bottom: 1px solid var(--line); background: linear-gradient(90deg, rgba(57,255,20,.12), transparent 70%); font-size: 18px; text-shadow: var(--glow); }
-  .sb-b { padding: 10px 12px; display: grid; gap: 4px; }
-  .row { display: flex; justify-content: space-between; gap: 10px; }
-  .row b { font-weight: 400; text-shadow: var(--glow); }
-  .timer { font-size: 30px; line-height: 1.1; text-shadow: var(--glow); }
-  .log { font-size: 13px; color: var(--green-dim); text-shadow: none; display: grid; gap: 2px; min-height: 4em; }
-
-  /* Conexiones */
-  table { width: 100%; border-collapse: collapse; }
-  .tw { overflow-x: auto; border: 1px solid var(--line); background: var(--surface); }
-  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { font-weight: 400; color: var(--green-soft); white-space: nowrap; }
-  tr:last-child td { border-bottom: none; }
-  .tag.on { color: var(--green); text-shadow: var(--glow); }
-  .tag.off { color: var(--amber); text-shadow: none; }
-  .flow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 22px 0 0; }
-  .node { border: 1px solid var(--green); padding: 10px 20px; font-size: 24px; text-shadow: var(--glow); box-shadow: var(--glow-soft); background: var(--surface); }
-  .node.wait { border-color: var(--amber); color: var(--amber); text-shadow: none; box-shadow: none; border-style: dashed; }
-  .arrow { color: var(--green-dim); letter-spacing: -.1em; text-shadow: none; }
-
-  /* HUD */
-  .gwrap { display: grid; justify-items: center; gap: 12px; }
-  .lockline { font-size: 20px; letter-spacing: .16em; text-transform: uppercase; color: var(--green-dim); text-shadow: none; border: 1px solid var(--line); padding: 2px 20px; background: rgba(0,0,0,.7); }
-  .lockline.ok { color: var(--green); border-color: var(--green); text-shadow: var(--glow); box-shadow: var(--glow); }
-  .lockline.bad { color: var(--red); border-color: var(--red); }
-  .spin-c { transform-origin: 50px 50px; animation: spin 5s linear infinite; }
-  #crt { position: fixed; left: 0; right: 0; top: -160px; height: 160px; z-index: 290; pointer-events: none; background: linear-gradient(to bottom, transparent, rgba(57,255,20,.05), transparent); animation: crt 9s linear infinite; }
-  @keyframes crt { to { transform: translateY(calc(100vh + 320px)); } }
-  .logo { animation: glitch 10s infinite; }
-  @keyframes glitch {
-    0%, 93%, 100% { transform: none; text-shadow: var(--glow); }
-    94% { transform: translateX(-2px); text-shadow: 3px 0 #0f6, -3px 0 #063; }
-    96% { transform: translateX(2px); text-shadow: -3px 0 #0f6, 3px 0 #063; }
-    98% { transform: none; text-shadow: var(--glow); }
-  }
-  .topbar { grid-column: 1 / -1; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; border: 1px solid var(--line); background: var(--surface); padding: 6px 14px; font-size: 14px; }
-  .tb-t { font-size: 18px; text-shadow: var(--glow); }
-  .tb-r { margin-left: auto; color: var(--green-dim); text-shadow: none; }
-  .led { display: inline-flex; align-items: center; gap: 7px; color: var(--green-dim); text-shadow: none; }
-  .led::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: var(--glow); }
-  .led.on { color: var(--green); }
-  .led.on::before { animation: pulse 2.2s ease-in-out infinite; }
-  .led.wait { color: var(--amber); }
-  .led.wait::before { background: var(--amber); box-shadow: none; }
-  @keyframes pulse { 50% { opacity: .25; } }
-  .hud { display: grid; grid-template-columns: 170px minmax(0, 1fr) 250px; gap: 16px; align-items: stretch; margin-bottom: 18px; min-height: 170px; }
-  .gauge { position: relative; width: 170px; height: 170px; }
-  .gauge svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 0 5px rgba(57,255,20,.6)); }
-  .g-a { transform-origin: 80px 80px; animation: spin 32s linear infinite; }
-  .g-b { transform-origin: 80px 80px; animation: spin 20s linear infinite reverse; }
-  .sweep { transform-origin: 80px 80px; animation: spin 4.5s linear infinite; }
-  .gclock { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; line-height: 1.25; }
-  .gclock b { font-weight: 400; font-size: 22px; text-shadow: var(--glow); }
-  .gclock span { font-size: 14px; color: var(--green-dim); text-shadow: none; }
-  .spec, .hexbox { position: relative; border: 1px solid var(--line); background: var(--surface); min-width: 0; }
-  .spec canvas { width: 100%; height: 100%; display: block; }
-  .spec .tg { position: absolute; top: 4px; left: 10px; font-size: 14px; color: var(--green-dim); text-shadow: none; }
-  .hexbox { padding: 8px 10px; overflow: hidden; }
-  .hx-h { font-size: 14px; color: var(--green-soft); margin-bottom: 4px; text-shadow: none; }
-  .hexbox pre { margin: 0; font: inherit; font-size: 12.5px; line-height: 1.5; color: var(--green); white-space: pre; }
-  .meter { flex: 1; align-self: center; height: 6px; border: 1px solid var(--line); background: #000; display: block; }
-  .meter s { display: block; height: 100%; width: 0; background: var(--green); box-shadow: var(--glow-soft); transition: width .5s; }
-  .row b { min-width: 2ch; text-align: right; }
-  .panelbox { border: 1px solid var(--line); background: var(--surface); padding: 16px; margin-bottom: 18px; display: grid; gap: 10px; }
-  .vrow { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
-  #z-text { min-height: 170px; }
-  .files .fm.bad { color: var(--red); }
-  @media (prefers-reduced-motion: reduce) { .cursor, .spin-a, .spin-b, .spin-c, .g-a, .g-b, .sweep, .logo, .led.on::before { animation: none; } #rain, #crt { display: none; } }
-  @media (max-width: 1180px) {
-    .shell { grid-template-columns: 170px minmax(0, 1fr); }
-    .hud { grid-template-columns: 170px minmax(0, 1fr); }
-    .hexbox { display: none; }
-    .side { grid-column: 1 / -1; position: static; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
-  }
-  @media (max-width: 760px) {
-    .shell { grid-template-columns: 1fr; padding: 12px; gap: 14px; }
-    .rail { position: static; grid-template-columns: 1fr auto; align-items: center; }
-    .rail nav { grid-column: 1 / -1; grid-template-columns: repeat(4, 1fr); order: 3; }
-    .rail nav button { text-align: center; border-left-width: 1px; }
-    .clock { display: none; }
-    .hud { grid-template-columns: 1fr; justify-items: center; min-height: 0; }
-    .spec { display: none; }
-    .linkform { grid-template-columns: 1fr; }
-    .files li { grid-template-columns: 1fr; }
-    .files .code, .files .fn, .files .fm, .files .fa { grid-column: 1; grid-row: auto; justify-content: flex-start; }
-  }
-</style>
-</head>
-<body>
-<canvas id="rain" aria-hidden="true"></canvas>
-<div id="crt" aria-hidden="true"></div>
-
-<!-- ACCESO -->
-<div id="gate">
- <div class="gwrap">
-  <div class="orb" id="orb">
-    <svg viewBox="0 0 100 100" aria-hidden="true">
-      <circle cx="50" cy="50" r="48.5" fill="#000" stroke="#39ff14" stroke-width=".7"/>
-      <g class="spin-a"><circle cx="50" cy="50" r="45.5" fill="none" stroke="#39ff14" stroke-width=".9" stroke-dasharray="1.2 2.4"/></g>
-      <g class="spin-b"><circle cx="50" cy="50" r="42.5" fill="none" stroke="#2bd10f" stroke-width=".5" stroke-dasharray="14 5 2 5"/></g>
-      <circle cx="50" cy="50" r="39" fill="none" stroke="#0d4a1c" stroke-width=".4"/>
-      <defs><linearGradient id="gsw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#39ff14" stop-opacity="0"/><stop offset="1" stop-color="#39ff14" stop-opacity=".4"/></linearGradient></defs>
-      <g class="spin-c"><path d="M50 50 L50 11 A39 39 0 0 1 75.1 20.1 Z" fill="url(#gsw)"/></g>
-    </svg>
-    <form id="gate-form" autocomplete="off" onsubmit="return false">
-      <h1>X0</h1>
-      <input class="field" id="g-user" name="u0" type="text" placeholder="usuario" aria-label="Usuario" autocomplete="off" autocorrect="off" data-lpignore="true" data-1p-ignore="true" autocapitalize="off" spellcheck="false">
-      <input class="field" id="g-pass" type="password" placeholder="contraseña" aria-label="Contraseña" autocomplete="current-password">
-      <input class="field" id="g-code" type="password" inputmode="numeric" placeholder="código" aria-label="Código" autocomplete="one-time-code">
-      <button class="btn" id="g-btn" type="submit">Entrar</button>
-      <div class="msg" id="g-msg" role="status"></div>
-    </form>
-  </div>
-  <div class="lockline" id="lock" role="status">bloqueado</div>
- </div>
-</div>
-
-<!-- CENTRAL -->
-<div class="shell" id="app" hidden>
-  <div class="topbar" role="status" aria-label="Estado de las conexiones">
-    <span class="tb-t">C0</span>
-    <span class="led on">R1</span><span class="led on">R2</span><span class="led on">R3</span>
-    <span class="led wait">R4</span><span class="led wait">R5</span><span class="led wait">R6</span>
-    <span class="tb-r">AES-256</span>
-  </div>
-  <aside class="rail">
-    <div class="logo">&gt; C0<span class="cursor" aria-hidden="true"></span></div>
-    <div class="clock" id="clock"></div>
-    <nav role="tablist" aria-orientation="vertical" aria-label="Secciones">
-      <button role="tab" id="t-panel" aria-selected="true" aria-controls="s-panel">T1</button>
-      <button role="tab" id="t-vault" aria-selected="false" aria-controls="s-vault">T2</button>
-      <button role="tab" id="t-link" aria-selected="false" aria-controls="s-link">T3</button>
-      <button role="tab" id="t-data" aria-selected="false" aria-controls="s-data">T4</button>
-      <button role="tab" id="t-track" aria-selected="false" aria-controls="s-track">T5</button>
-    </nav>
-    <button class="btn small ghost" id="logout" type="button">Cerrar sesión</button>
-  </aside>
-
-  <main class="main">
-    <div class="boot" id="boot" aria-hidden="true"></div>
-
-    <div class="hud" aria-hidden="true">
-      <div class="gauge">
-        <svg viewBox="0 0 160 160">
-          <defs><linearGradient id="swg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#39ff14" stop-opacity="0"/><stop offset="1" stop-color="#39ff14" stop-opacity=".5"/></linearGradient></defs>
-          <circle cx="80" cy="80" r="76" fill="none" stroke="#0d4a1c" stroke-width="1"/>
-          <g class="g-a"><circle cx="80" cy="80" r="71" fill="none" stroke="#39ff14" stroke-width="2" stroke-dasharray="3 6"/></g>
-          <g class="g-b"><circle cx="80" cy="80" r="64" fill="none" stroke="#2bd10f" stroke-width="3" stroke-dasharray="40 10 8 10"/></g>
-          <circle cx="80" cy="80" r="58" fill="none" stroke="#0d4a1c" stroke-width="5"/>
-          <circle id="arc" cx="80" cy="80" r="58" fill="none" stroke="#39ff14" stroke-width="5" stroke-dasharray="364.4" stroke-dashoffset="0" transform="rotate(-90 80 80)"/>
-          <g class="sweep"><path d="M80 80 L80 22 A58 58 0 0 1 117.3 35.6 Z" fill="url(#swg)"/></g>
-        </svg>
-        <div class="gclock"><b id="gclk">00:00:00</b><span id="gs">10:00</span></div>
-      </div>
-      <div class="spec"><span class="tg">A0</span><canvas id="spec"></canvas></div>
-      <div class="hexbox"><div class="hx-h" id="hx-h">H0</div><pre id="hex"></pre></div>
-    </div>
-
-    <div class="toolbar" id="global-prompt">
-      <label class="prompt" for="q"><span>$</span>
-        <input id="q" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="código o comando (help)…">
-      </label>
-      <button class="btn" id="add-open" type="button">+ Agregar componente</button>
-    </div>
-    <div class="cmd-out" id="cmd-out" aria-live="polite"></div>
-
-    <section id="s-panel" role="tabpanel" aria-labelledby="t-panel">
-      <div class="cats" id="cats"></div>
-    </section>
-
-    <section id="s-vault" role="tabpanel" aria-labelledby="t-vault" hidden>
-      <h2>T2</h2>
-      <p class="muted">Cifrado AES-256 activo. Cada elemento recibe su código al guardarse.</p>
-      <div class="bar">
-        <button class="btn" id="up-btn" type="button">Subir archivos</button>
-        <button class="btn ghost" id="lk-btn" type="button">Guardar enlace</button>
-        <input id="up-in" type="file" multiple style="display:none" aria-label="Elegir archivos">
-        <span class="muted" id="count"></span>
-      </div>
-      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Soltar archivos aquí">Suelta aquí tus archivos para cifrarlos y numerarlos</div>
-      <div class="linkform" id="linkform" hidden>
-        <input class="field" id="l-url" placeholder="Dirección del enlace" aria-label="Dirección del enlace" inputmode="url" autocapitalize="off">
-        <input class="field" id="l-name" placeholder="Título (opcional)" aria-label="Título" maxlength="80">
-        <input class="field" id="l-note" placeholder="Nota (opcional)" aria-label="Nota" maxlength="120">
-        <button class="btn" id="l-save" type="button">Guardar</button>
-      </div>
-      <div class="msg" id="v-msg"></div>
-      <label class="prompt" for="vq" style="display:flex"><span>$</span>
-        <input id="vq" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="buscar por código, nombre o nota…">
-      </label>
-      <div class="chips" id="chips" role="group" aria-label="Filtrar por tipo"></div>
-      <ul class="files" id="list"></ul>
-      <div style="margin-top:22px"><button class="btn danger small" id="wipe" type="button">Borrar todo el archivo</button></div>
-    </section>
-
-    <section id="s-link" role="tabpanel" aria-labelledby="t-link" hidden>
-      <h2>T3</h2>
-      <div class="tw">
-        <table>
-          <thead><tr><th>Clave</th><th>Estado</th></tr></thead>
-          <tbody>
-            <tr><td>R1</td><td class="tag on">activo</td></tr>
-            <tr><td>R2</td><td class="tag on">activo</td></tr>
-            <tr><td>R3</td><td class="tag on">activo</td></tr>
-            <tr><td>R4</td><td class="tag off">pendiente</td></tr>
-            <tr><td>R5</td><td class="tag off">pendiente</td></tr>
-            <tr><td>R6</td><td class="tag off">pendiente</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="flow" aria-label="Ruta de envío">
-        <div class="node wait">S2</div><span class="arrow">─────►</span>
-        <div class="node wait">R4</div><span class="arrow">─────►</span>
-        <div class="node">C0</div>
-      </div>
-    </section>
-
-    <section id="s-data" role="tabpanel" aria-labelledby="t-data" hidden>
-      <h2>T4</h2>
-      <p class="muted">Cada dato se cifra con su propio código. Sin ese código no se abre, ni siquiera con la sesión iniciada.</p>
-      <div class="panelbox">
-        <input class="field" id="z-title" placeholder="Título (opcional, también se cifra)" aria-label="Título" maxlength="80" autocomplete="off">
-        <textarea class="field" id="z-text" placeholder="Pega aquí el dato o documento…" aria-label="Dato o documento" maxlength="500000" spellcheck="false"></textarea>
-        <div class="vrow">
-          <input class="field" id="z-code" placeholder="Código de cifrado (mínimo 8 caracteres)" aria-label="Código de cifrado" autocomplete="off" autocapitalize="off" spellcheck="false">
-          <button class="btn ghost" id="z-gen" type="button">Generar</button>
-        </div>
-        <div class="bar" style="margin:0">
-          <button class="btn" id="z-save" type="button">Cifrar y guardar</button>
-          <button class="btn ghost" id="z-file" type="button">Cargar texto</button>
-          <input id="z-fin" type="file" accept=".txt,.md,.csv,.json,text/*" style="display:none" aria-label="Elegir archivo de texto">
-          <span class="muted" id="z-cnt"></span>
-        </div>
-        <div class="msg" id="z-msg" role="status"></div>
-      </div>
-      <ul class="files" id="dlist"></ul>
-    </section>
-
-    <section id="s-track" role="tabpanel" aria-labelledby="t-track" hidden>
-      <h2>T5</h2>
-      <p class="muted">Mapa personal: solo tu ubicación (con permiso) + búsqueda de sitios turísticos y reservas.</p>
-      <div class="track-form">
-        <input class="field" id="tr-q" type="search" placeholder="buscar lugar o sitio turístico…" aria-label="Buscar lugar" autocomplete="off" spellcheck="false">
-        <button class="btn" id="tr-search" type="button">Buscar</button>
-        <button class="btn ghost" id="tr-me" type="button">Mi ubicación</button>
-        <button class="btn ghost" id="tr-clear" type="button">Limpiar</button>
-      </div>
-      <div class="msg" id="tr-msg" role="status"></div>
-      <div class="track-wrap">
-        <canvas id="worldmap" width="900" height="420" aria-label="Mapa personal"></canvas>
-        <div class="track-info" id="tr-info">
-          <div class="row"><span>POS</span><b id="tr-obj">—</b></div>
-          <div class="row"><span>LAT</span><b id="tr-lat">—</b></div>
-          <div class="row"><span>LON</span><b id="tr-lon">—</b></div>
-          <div class="row"><span>ACC</span><b id="tr-acc">—</b></div>
-          <div class="row"><span>STS</span><b id="tr-sts">IDLE</b></div>
-        </div>
-      </div>
-      <div class="track-actions" id="tr-actions" hidden>
-        <a class="btn small" id="tr-gmaps" target="_blank" rel="noopener">Maps</a>
-        <a class="btn small" id="tr-osm" target="_blank" rel="noopener">OSM</a>
-        <a class="btn small" id="tr-book" target="_blank" rel="noopener">Reservas</a>
-        <a class="btn small" id="tr-trip" target="_blank" rel="noopener">Trip</a>
-      </div>
-      <ul class="files" id="tr-results"></ul>
-      <div class="track-log" id="tr-log"></div>
-    </section>
-  </main>
-
-  <aside class="side">
-    <div class="sb">
-      <div class="sb-h">Q1</div>
-      <div class="sb-b">
-        <div class="row"><span>K1</span><i class="meter"><s id="m-k1"></s></i><b id="q-k1">0</b></div>
-        <div class="row"><span>K2</span><i class="meter"><s id="m-k2"></s></i><b id="q-k2">0</b></div>
-        <div class="row"><span>K3</span><i class="meter"><s id="m-k3"></s></i><b id="q-k3">0</b></div>
-        <div class="row"><span>K4</span><i class="meter"><s id="m-k4"></s></i><b id="q-k4">0</b></div>
-        <div class="row"><span>P0</span><i class="meter"><s id="m-p0"></s></i><b id="q-p0">0</b></div>
-        <div class="row"><span>V1</span><i class="meter"><s id="m-v1"></s></i><b id="q-v1">0</b></div>
-      </div>
-    </div>
-    <div class="sb">
-      <div class="sb-h">Q2</div>
-      <div class="sb-b">
-        <div class="row"><span>S0</span><span class="timer" id="s0">10:00</span></div>
-        <div class="row"><span>D0</span><b id="sd">—</b></div>
-      </div>
-    </div>
-    <div class="sb">
-      <div class="sb-h">Q3</div>
-      <div class="sb-b"><div class="log" id="logbox"></div></div>
-    </div>
-  </aside>
-</div>
-
-<!-- Ver archivo o nota -->
-<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Vista previa">
-  <div class="vh"><span id="v-title" style="overflow-wrap:anywhere"></span><button class="btn small" id="v-close" type="button">Cerrar</button></div>
-  <div class="vb" id="v-body"></div>
-</div>
-
-<!-- Agregar componente -->
-<div class="viewer dlg" id="dlg" hidden role="dialog" aria-modal="true" aria-label="Agregar componente">
-  <div class="dbox stack">
-    <div class="vh" style="margin:0"><span>+ P0</span><button class="btn small" id="d-x" type="button">Cerrar</button></div>
-    <div class="seg" role="group" aria-label="Tipo de componente">
-      <button class="chip" id="d-t-link" type="button" aria-pressed="true">Enlace</button>
-      <button class="chip" id="d-t-note" type="button" aria-pressed="false">Nota</button>
-    </div>
-    <input class="field" id="d-g" maxlength="1" placeholder="Categoría: una letra (ej. A)" aria-label="Categoría" autocapitalize="characters" autocomplete="off">
-    <div class="chips" id="d-gs" style="margin:0" role="group" aria-label="Categorías existentes"></div>
-    <input class="field" id="d-url" placeholder="Dirección (https://…)" aria-label="Dirección" inputmode="url" autocapitalize="off" autocomplete="off">
-    <textarea class="field" id="d-text" placeholder="Texto de la nota" aria-label="Texto de la nota" maxlength="5000" hidden></textarea>
-    <div class="msg muted">Se cifra con AES-256 antes de guardarse.</div>
-    <button class="btn" id="d-save" type="button">Cifrar y guardar</button>
-    <div class="msg" id="d-msg" role="status"></div>
-  </div>
-</div>
-
-<!-- Panic camouflage (Excel fake) -->
-<div id="panic-layer" aria-hidden="true">
-  <div class="pbar"><span>Excel</span><span>Archivo</span><span>Inicio</span><span>Insertar</span><span>Diseño</span><span>Fórmulas</span><span style="margin-left:auto">Libro1 - Microsoft Excel</span></div>
-  <div class="pgrid" id="pgrid"></div>
-</div>
-
-<!-- Shredder -->
-<div id="shred" aria-hidden="true">
-  <div style="font-size:22px;text-shadow:var(--glow);color:var(--red)">PURGANDO SECTORES…</div>
-  <div class="sbar"><s id="sfill"></s></div>
-  <div id="smsg" style="color:var(--green-dim);font-size:14px">0%</div>
-</div>
-
-<!-- Radio bar (injected dynamically near top of main when playing) -->
-<audio id="radio-audio" crossorigin="anonymous" preload="none"></audio>
-
-<div class="fs-hint">F11 pantalla completa · Esc×2 pánico · escribe help</div>
-
-<script>
-(function () {
-  'use strict';
-  const $ = (s, r) => (r || document).querySelector(s);
-  function el(tag, attrs, ...kids) {
-    const n = document.createElement(tag);
-    for (const k in (attrs || {})) {
-      if (k === 'class') n.className = attrs[k];
-      else if (k.startsWith('on')) n.addEventListener(k.slice(2), attrs[k]);
-      else n.setAttribute(k, attrs[k]);
-    }
-    kids.forEach(c => n.append(c));
-    return n;
-  }
-  const enc = new TextEncoder(), dec = new TextDecoder();
-  function host(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } }
-  function setMsg(node, text, cls) { node.className = 'msg' + (cls ? ' ' + cls : ''); node.textContent = text; }
-  function fmtSize(n) { return n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(1) + ' MB'; }
-  function normUrl(u) {
-    u = String(u || '').trim();
-    if (!u) return null;
-    if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
-    try { new URL(u); return u; } catch (e) { return null; }
-  }
-
-  /* ---------- Lluvia hexadecimal de fondo ---------- */
-  (function rain() {
-    const c = $('#rain');
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const ctx = c.getContext('2d'), chars = '0123456789ABCDEF', fs = 16;
-    let w, h, cols, drops, last = 0, run = true;
-    function size() { w = c.width = innerWidth; h = c.height = innerHeight; cols = Math.ceil(w / fs); drops = Array.from({ length: cols }, () => Math.random() * h / fs); }
-    size(); addEventListener('resize', size);
-    function frame(t) {
-      if (!run) return;
-      if (t - last > 70) {
-        last = t;
-        ctx.fillStyle = 'rgba(0,0,0,.13)'; ctx.fillRect(0, 0, w, h);
-        ctx.fillStyle = '#39ff14'; ctx.font = fs + 'px monospace';
-        for (let i = 0; i < cols; i++) {
-          ctx.fillText(chars[(Math.random() * 16) | 0], i * fs, drops[i] * fs);
-          if (drops[i] * fs > h && Math.random() > .975) drops[i] = 0;
-          drops[i]++;
-        }
-      }
-      requestAnimationFrame(frame);
-    }
-    document.addEventListener('visibilitychange', () => { run = !document.hidden; if (run) requestAnimationFrame(frame); });
-    requestAnimationFrame(frame);
-  })();
-
-  /* =========================================================
-     ACCESO: usuario + contraseña + código
-     Solo se guardan huellas (PBKDF2), no los datos en claro.
-     ========================================================= */
-  const GATE_SALT = enc.encode('panel-euler-gate-v1');
-  const GATE_HASHES = [
-    'ac22eecf33f55e17997b08fe81bbcc9076f77dcdd8cde1cc687911c5fbd445ef',
-    'e1af7ebb4f3016e497126b9c6762ca6b0ebb9e5fc32652dac71252ee7c89c801'
-  ];
-  const VAULT_SALT = enc.encode('panel-euler-vault-v1');
-  const IDLE_MS = 10 * 60 * 1000;
-
-  async function baseKey(str) { return crypto.subtle.importKey('raw', enc.encode(str), 'PBKDF2', false, ['deriveBits', 'deriveKey']); }
-  async function gateHash(str) {
-    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: GATE_SALT, iterations: 200000, hash: 'SHA-256' }, await baseKey(str), 256);
-    return [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-  async function vaultKey(str) {
-    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: VAULT_SALT, iterations: 250000, hash: 'SHA-256' },
-      await baseKey(str), { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-  }
-
-  let key = null, db = null, fails = 0, busy = false, deadline = 0, timerId = null;
-  let items = [], comps = [], logs = [], filter = 'Todo';
-
-  async function login() {
-    if (busy) return;
-    const msg = $('#g-msg');
-    if (!window.crypto || !crypto.subtle) { setMsg(msg, 'Este navegador no permite el acceso seguro.', 'err'); return; }
-    const u = $('#g-user').value.trim().toLowerCase().replace(/\s+/g, ' ');
-    const p = $('#g-pass').value.trim().toLowerCase();
-    const c = $('#g-code').value.trim();
-    if (!u || !p || !c) { setMsg(msg, 'Completa los tres datos.', 'err'); return; }
-    busy = true; $('#g-btn').disabled = true; bump(.5);
-    let pi = 0;
-    const bar = setInterval(() => { pi = (pi + 1) % 9; setMsg(msg, 'descifrando ' + '█'.repeat(pi) + '░'.repeat(8 - pi)); }, 90);
-    const lock = $('#lock');
-    try {
-      const h = await gateHash(u + '|' + p + '|' + c);
-      clearInterval(bar);
-      if (GATE_HASHES.indexOf(h) === -1) {
-        fails++;
-        const orb = $('#orb'); orb.classList.remove('shake'); void orb.offsetWidth; orb.classList.add('shake');
-        setMsg(msg, 'Datos incorrectos.', 'err');
-        lock.textContent = 'acceso denegado'; lock.className = 'lockline bad';
-        await new Promise(r => setTimeout(r, Math.min(600 * fails, 5000)));
-        lock.textContent = 'bloqueado'; lock.className = 'lockline';
-        return;
-      }
-      key = await vaultKey(p + '|' + c);
-      fails = 0; setMsg(msg, '');
-      lock.textContent = 'acceso concedido'; lock.className = 'lockline ok';
-      await new Promise(r => setTimeout(r, 650));
-      $('#g-user').value = ''; $('#g-pass').value = ''; $('#g-code').value = '';
-      await enter();
-      lock.textContent = 'bloqueado'; lock.className = 'lockline';
-    } catch (e) {
-      clearInterval(bar);
-      setMsg(msg, 'No se pudo verificar. Inténtalo otra vez.', 'err');
-    } finally { clearInterval(bar); busy = false; $('#g-btn').disabled = false; }
-  }
-  $('#gate-form').addEventListener('submit', login);
-  (function () {
-    const u = $('#g-user'); let t;
-    u.addEventListener('input', () => { u.classList.add('tick'); clearTimeout(t); t = setTimeout(() => u.classList.remove('tick'), 140); });
-  })();
-
-  async function enter() {
-    $('#gate').hidden = true; $('#app').hidden = false;
-    show('panel'); bootAnim(); resetIdle();
-    clearInterval(timerId); timerId = setInterval(tickSession, 1000);
-    logs = []; logEv('R1 ok');
-    renderPanel();
-    await vaultOpen();
-  }
-  function logout() {
-    key = null; clearInterval(timerId); closeViewer(); closeDialog();
-    try { stopRadio(); } catch (e) {}
-    togglePanic(false);
-    const co = $('#cmd-out'); if (co) { co.textContent = ''; co.className = 'cmd-out'; }
-    $('#app').hidden = true; $('#gate').hidden = false;
-    $('#list').replaceChildren(); $('#cats').replaceChildren(); $('#logbox').replaceChildren();
-    items = []; comps = []; logs = []; vdata = [];
-    $('#dlist').replaceChildren(); $('#z-text').value = ''; $('#z-title').value = ''; $('#z-code').value = ''; setMsg($('#z-msg'), '');
-    $('#g-user').focus();
-  }
-  $('#logout').addEventListener('click', logout);
-
-  function resetIdle() { deadline = Date.now() + IDLE_MS; }
-  ['click', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { if (key) resetIdle(); }, { passive: true }));
-  function tickSession() {
-    if (!key) return;
-    const left = deadline - Date.now();
-    if (left <= 0) return logout();
-    const m = Math.floor(left / 60000), s = Math.floor((left % 60000) / 1000);
-    const txt = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-    $('#s0').textContent = txt; $('#gs').textContent = txt;
-    const arc = $('#arc');
-    arc.setAttribute('stroke-dashoffset', String(364.4 * (1 - left / IDLE_MS)));
-    arc.style.stroke = left < 60000 ? 'var(--amber)' : '';
-    $('#gclk').textContent = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-  }
-
-  function logEv(t) {
-    const d = new Date();
-    logs.unshift(d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + '  ' + t);
-    logs = logs.slice(0, 8);
-    const box = $('#logbox'); box.replaceChildren();
-    logs.forEach(l => box.append(el('div', {}, l)));
-    typeLine(box.firstChild, logs[0]);
-    bump(.6);
-  }
-
-  /* ---------- Reloj, arranque y pestañas ---------- */
-  function tick() {
-    const d = new Date();
-    const c = $('#clock'); c.replaceChildren();
-    c.append(el('b', {}, d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })),
-      d.toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short' }));
-  }
-  tick(); setInterval(tick, 20000);
-  function bootAnim() {
-    const box = $('#boot'); box.replaceChildren();
-    ['R1 ok', 'R2 ok', 'R3 ok', 'C0 en línea'].forEach((l, i) =>
-      setTimeout(() => box.append(el('span', { class: 'ok' }, '> ' + l)), 200 + i * 280));
-  }
-  const tabs = ['panel', 'vault', 'link', 'data', 'track'];
-  function show(name) {
-    tabs.forEach(t => { $('#s-' + t).hidden = t !== name; $('#t-' + t).setAttribute('aria-selected', String(t === name)); });
-  }
-  tabs.forEach(t => $('#t-' + t).addEventListener('click', () => show(t)));
-
-  /* =========================================================
-     LÍNEA DE COMANDOS + ATAJOS + RADIO + PÁNICO + SHREDDER
-     ========================================================= */
-  const cmdOut = () => $('#cmd-out');
-  function cmdPrint(text, cls) {
-    const node = cmdOut();
-    if (!node) return;
-    node.className = 'cmd-out' + (cls ? ' ' + cls : '');
-    node.textContent = '';
-    typeLine(node, text);
-  }
-
-  // --- Radio ---
-  const RADIO = {
-    synthwave: 'https://stream.zeno.fm/0r0xa792kwzuv',
-    lofi: 'https://stream.zeno.fm/f3wvbbqmdg8uv',
-    cyber: 'https://stream.zeno.fm/ez4m97xuy98uv',
-    dark: 'https://stream.zeno.fm/2w3y8n5ykwzuv'
-  };
-  let radioOn = false, radioGenre = 'synthwave';
-  const audioEl = $('#radio-audio');
-  function ensureRadioBar() {
-    let bar = $('#radio-bar');
-    if (bar) return bar;
-    bar = el('div', { id: 'radio-bar', class: 'radio-bar' });
-    bar.innerHTML = '<span class="eq"><i></i><i></i><i></i><i></i></span><span id="radio-label">RADIO</span><button class="btn small ghost" id="radio-stop" type="button">■</button>';
-    const panel = $('#s-panel');
-    if (panel) panel.insertBefore(bar, panel.firstChild);
-    else {
-      const main = $('.main');
-      if (main) main.prepend(bar);
-    }
-    $('#radio-stop').addEventListener('click', () => runCommand('stop'));
-    return bar;
-  }
-  function playRadio(genre) {
-    genre = (genre || radioGenre).toLowerCase();
-    if (!RADIO[genre]) genre = 'synthwave';
-    radioGenre = genre;
-    const bar = ensureRadioBar();
-    bar.classList.add('on');
-    $('#radio-label').textContent = '▶ ' + genre.toUpperCase();
-    audioEl.src = RADIO[genre];
-    audioEl.volume = 0.55;
-    audioEl.play().catch(() => cmdPrint('No se pudo reproducir el stream (bloqueado por el navegador). Prueba otra vez.', 'err'));
-    radioOn = true;
-    logEv('radio ' + genre);
-    cmdPrint('Reproduciendo ' + genre + '…  (stop para detener)', 'ok');
-  }
-  function stopRadio() {
-    audioEl.pause(); audioEl.removeAttribute('src');
-    radioOn = false;
-    const bar = $('#radio-bar'); if (bar) bar.classList.remove('on');
-    cmdPrint('Radio detenida.', 'ok');
-  }
-
-  // --- Panic Button ---
-  let panicActive = false, lastEsc = 0;
-  function buildPanicGrid() {
-    const g = $('#pgrid'); if (!g || g.children.length) return;
-    const cols = 'ABCDEFGHIJKL';
-    g.append(el('div', { class: 'pcell ph' }, ''));
-    for (let c = 0; c < 12; c++) g.append(el('div', { class: 'pcell ph' }, cols[c]));
-    for (let r = 1; r <= 22; r++) {
-      g.append(el('div', { class: 'pcell ph' }, String(r)));
-      for (let c = 0; c < 12; c++) {
-        const val = (r === 1 && c < 5) ? ['Ingresos', 'Gastos', 'Balance', 'Q1', 'Q2'][c] :
-          (Math.random() > 0.7 ? (Math.random() * 9000 + 100).toFixed(2) : '');
-        g.append(el('div', { class: 'pcell' }, val));
-      }
-    }
-  }
-  function togglePanic(force) {
-    const layer = $('#panic-layer');
-    if (force === false || (panicActive && force !== true)) {
-      layer.classList.remove('active'); panicActive = false; return;
-    }
-    buildPanicGrid();
-    layer.classList.add('active'); panicActive = true;
-    logEv('PANIC ON');
-  }
-
-  // --- Shredder visual ---
-  function runShred(label) {
-    const box = $('#shred'), fill = $('#sfill'), msg = $('#smsg');
-    box.classList.add('on'); fill.style.width = '0%'; msg.textContent = '0% — ' + (label || 'datos');
-    let p = 0;
-    const id = setInterval(() => {
-      p += 4 + Math.random() * 6;
-      if (p >= 100) { p = 100; clearInterval(id); msg.textContent = '100% — sectores sobrescritos'; setTimeout(() => box.classList.remove('on'), 700); }
-      fill.style.width = p + '%';
-      msg.textContent = Math.floor(p) + '% — purgando…';
-    }, 90);
-    logEv('shred');
-  }
-
-  // --- Deploy status (simulated) ---
-  const deploys = [
-    { name: 'vercel/main', status: 'ready', lag: 12 },
-    { name: 'firebase/prod', status: 'ready', lag: 8 },
-    { name: 'vercel/preview', status: 'building', lag: 45 }
-  ];
-  function deployStatus() {
-    const lines = deploys.map(d => {
-      const tag = d.status === 'ready' ? '● READY' : '◐ BUILD';
-      return d.name.padEnd(18) + ' ' + tag + '  ' + d.lag + 's';
-    });
-    cmdPrint(lines.join('\n'), 'ok');
-    logEv('deploy status');
-  }
-
-  // --- Command parser ---
-  const COMMANDS = {
-    help: () => {
-      cmdPrint([
-        'Comandos disponibles:',
-        '  help / ?          — esta ayuda',
-        '  clear             — limpia salida y logs',
-        '  status            — estado del sistema',
-        '  panel|vault|link|data|track — cambia de sección',
-        '  map / track         — módulo de rastreo simulado',
-        '  ls / list         — resumen de bóveda',
-        '  inject            — simula inyección de carga',
-        '  nuke              — alerta crítica',
-        '  play [género]     — radio (synthwave|lofi|cyber|dark)',
-        '  stop / mute       — detiene la radio',
-        '  volume <0-100>    — volumen de radio',
-        '  deploy / vercel   — estado de deploys',
-        '  shred             — animación de borrado seguro',
-        '  panic             — activa camuflaje Excel',
-        '  fullscreen / fs   — pantalla completa',
-        '  whoami            — sesión actual',
-        '  time              — hora del sistema',
-        '  hex               — refresca volcado hex',
-        '  logout / exit     — cierra sesión',
-        '  ping              — prueba de latencia falsa',
-        '  ai                — lista de IAs del panel A'
-      ].join('\n'), 'ok');
-    },
-    '?': () => COMMANDS.help(),
-    clear: () => {
-      const o = cmdOut(); if (o) { o.textContent = ''; o.className = 'cmd-out'; }
-      $('#logbox').replaceChildren(); logs = [];
-      $('#boot').replaceChildren();
-      $('#q').value = ''; renderPanel();
-      cmdPrint('Pantalla limpia.', 'ok');
-    },
-    status: () => {
-      const left = Math.max(0, deadline - Date.now());
-      const m = Math.floor(left / 60000), s = Math.floor((left % 60000) / 1000);
-      cmdPrint([
-        'C0  ·  AES-256 activo  ·  sesión ' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0'),
-        'Componentes: ' + comps.length + '  |  Archivo: ' + items.length + '  |  Datos: ' + vdata.length,
-        'Radio: ' + (radioOn ? radioGenre : 'off') + '  |  R1-R3 online'
-      ].join('\n'), 'ok');
-    },
-    panel: () => { show('panel'); cmdPrint('→ T1 Panel', 'ok'); },
-    vault: () => { show('vault'); cmdPrint('→ T2 Bóveda', 'ok'); },
-    link: () => { show('link'); cmdPrint('→ T3 Conexiones', 'ok'); },
-    data: () => { show('data'); cmdPrint('→ T4 Datos', 'ok'); },
-    track: () => { show('track'); cmdPrint('→ T5 Rastreo simulado', 'ok'); },
-    map: () => { show('track'); cmdPrint('→ T5 Rastreo simulado', 'ok'); },
-    ls: () => {
-      cmdPrint('Archivo: ' + items.length + ' elementos · Datos cifrados: ' + vdata.length + ' · Componentes: ' + comps.length, 'ok');
-    },
-    list: () => COMMANDS.ls(),
-    inject: () => {
-      cmdPrint('Inyectando payload…', 'warn');
-      let step = 0;
-      const meters = ['m-k1','m-k2','m-k3','m-k4','m-p0','m-v1'];
-      const id = setInterval(() => {
-        step++;
-        meters.forEach(idm => { const el = $('#' + idm); if (el) el.style.width = Math.min(100, step * 8 + Math.random() * 20) + '%'; });
-        bump(0.3);
-        if (step >= 12) {
-          clearInterval(id);
-          cmdPrint('[SUCCESS] Payload inyectado. Canales abiertos.', 'ok');
-          logEv('inject ok');
-          setTimeout(renderSide, 800);
-        }
-      }, 180);
-    },
-    nuke: () => {
-      cmdPrint('⚠ CRITICAL WARNING: BYPASS DETECTED', 'err');
-      document.body.style.background = '#1a0000';
-      setTimeout(() => { document.body.style.background = ''; }, 1200);
-      logEv('NUKE');
-      const lock = $('#lock'); if (lock) { lock.textContent = 'ALERTA CRÍTICA'; lock.className = 'lockline bad'; setTimeout(() => { lock.textContent = 'bloqueado'; lock.className = 'lockline'; }, 2000); }
-    },
-    play: (arg) => playRadio(arg),
-    stop: () => stopRadio(),
-    mute: () => stopRadio(),
-    volume: (arg) => {
-      const v = Math.max(0, Math.min(100, parseInt(arg, 10) || 55));
-      audioEl.volume = v / 100;
-      cmdPrint('Volumen: ' + v + '%', 'ok');
-    },
-    deploy: () => deployStatus(),
-    vercel: () => deployStatus(),
-    firebase: () => deployStatus(),
-    shred: () => { runShred('memoria temporal'); cmdPrint('Purga iniciada.', 'warn'); },
-    panic: () => { togglePanic(true); cmdPrint('Camuflaje activado. Esc×2 o panic para salir.', 'warn'); },
-    fullscreen: () => {
-      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
-      else document.exitFullscreen?.();
-      cmdPrint(document.fullscreenElement ? 'Saliendo de pantalla completa' : 'Pantalla completa', 'ok');
-    },
-    fs: () => COMMANDS.fullscreen(),
-    whoami: () => cmdPrint('usuario autenticado · sesión C0 · AES-256 · idle-timer activo', 'ok'),
-    time: () => cmdPrint(new Date().toLocaleString('es-PE'), 'ok'),
-    hex: () => { updHex(); cmdPrint('Volcado hexadecimal actualizado.', 'ok'); },
-    logout: () => { cmdPrint('Cerrando sesión…', 'warn'); setTimeout(logout, 400); },
-    exit: () => COMMANDS.logout(),
-    ping: () => {
-      const ms = 12 + Math.floor(Math.random() * 40);
-      setTimeout(() => cmdPrint('pong  ' + ms + ' ms  ·  R1 reachable', 'ok'), 200 + ms);
-    },
-    ai: () => {
-      const ais = allComponents().filter(c => c.g === 'A');
-      cmdPrint('IAs disponibles:\n' + ais.map(c => '  ' + c.code + '  →  ' + (c.url || '')).join('\n'), 'ok');
-    }
-  };
-
-  function runCommand(raw) {
-    const parts = String(raw || '').trim().split(/\s+/);
-    const cmd = (parts[0] || '').toLowerCase();
-    const arg = parts.slice(1).join(' ');
-    if (!cmd) return false;
-    if (COMMANDS[cmd]) { COMMANDS[cmd](arg); return true; }
-    cmdPrint('Comando desconocido: ' + cmd + '  (escribe help)', 'err');
-    return true;
-  }
-
-  // Wire the prompt: Enter = command, otherwise live search
-  $('#q').addEventListener('keydown', ev => {
-    if (ev.key !== 'Enter') return;
-    ev.preventDefault();
-    const val = $('#q').value.trim();
-    if (!val) return;
-    if (runCommand(val)) {
-      $('#q').value = '';
-      renderPanel();
-    }
-  });
-
-  // Double-Esc panic + single Esc closes dialogs
-  document.addEventListener('keydown', ev => {
-    if (ev.key === 'Escape') {
-      const now = Date.now();
-      if (now - lastEsc < 450) {
-        ev.preventDefault();
-        togglePanic(!panicActive);
-        lastEsc = 0;
-        return;
-      }
-      lastEsc = now;
-      if (panicActive) { togglePanic(false); return; }
-      closeViewer(); closeDialog();
-    }
-    // Ctrl+` or Ctrl+Shift+P also panic
-    if ((ev.ctrlKey || ev.metaKey) && (ev.key === '`' || ev.key === 'Dead')) {
-      ev.preventDefault(); togglePanic(!panicActive);
-    }
-  });
-
-  // Fullscreen on F11 is native; we just track
-  document.addEventListener('fullscreenchange', () => {
-    const h = $('.fs-hint');
-    if (h) h.style.opacity = document.fullscreenElement ? '0.25' : '0.55';
-  });
-
-  /* =========================================================
-     ALMACENAMIENTO CIFRADO
-     ========================================================= */
-  async function seal(buf) {
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    return { iv, ct: await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, buf) };
-  }
-  function unseal(iv, ct) { return crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct); }
-  function openDB() {
-    return new Promise((res, rej) => {
-      const r = indexedDB.open('panel-central', 3);
-      r.onupgradeneeded = () => {
-        const d = r.result;
-        if (!d.objectStoreNames.contains('items')) d.createObjectStore('items', { keyPath: 'id' });
-        if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta');
-        if (!d.objectStoreNames.contains('comps')) d.createObjectStore('comps', { keyPath: 'id' });
-        if (!d.objectStoreNames.contains('vault')) d.createObjectStore('vault', { keyPath: 'id' });
-      };
-      r.onsuccess = () => res(r.result);
-      r.onerror = () => rej(r.error);
-    });
-  }
-  function store(name, mode, fn) {
-    return new Promise((res, rej) => {
-      const t = db.transaction(name, mode);
-      const rq = fn(t.objectStore(name));
-      t.oncomplete = () => res(rq ? rq.result : undefined);
-      t.onerror = () => rej(t.error);
-      t.onabort = () => rej(t.error);
-    });
-  }
-  async function updStorage() {
-    try { const e = await navigator.storage.estimate(); $('#sd').textContent = fmtSize(e.usage || 0); }
-    catch (e) { $('#sd').textContent = '—'; }
-  }
-
-  async function vaultOpen() {
-    const msg = $('#v-msg');
-    if (!window.indexedDB) return setMsg(msg, 'Este navegador no permite guardar archivos locales.', 'err');
-    try { if (!db) db = await openDB(); } catch (e) { return setMsg(msg, 'No se pudo abrir el almacenamiento local.', 'err'); }
-    setMsg(msg, '');
-    await migrateOld();
-    await loadComps();
-    await loadData();
-    await refresh();
-  }
-
-  /* =========================================================
-     PANEL: componentes por categoría (cifrados los propios)
-     ========================================================= */
-  /* Categorías (solo códigos en pantalla):
-     A = asistentes generales
-     B = escritura / estudio
-     C = imágenes
-     D = video
-     E = voz / música / audio
-     F = programación / automatización
-     G = oficina
-     H = archivos / almacenamiento
-     I = redes / social
-  */
-  const LINKS = [
-    // A — Asistentes generales
-    { g: 'A', url: 'https://chatgpt.com' },
-    { g: 'A', url: 'https://gemini.google.com' },
-    { g: 'A', url: 'https://claude.ai' },
-    { g: 'A', url: 'https://copilot.microsoft.com' },
-    { g: 'A', url: 'https://www.perplexity.ai' },
-    { g: 'A', url: 'https://grok.com' },
-    { g: 'A', url: 'https://www.meta.ai' },
-    { g: 'A', url: 'https://chat.deepseek.com' },
-    // B — Escritura y estudio
-    { g: 'B', url: 'https://www.grammarly.com' },
-    { g: 'B', url: 'https://www.jasper.ai' },
-    { g: 'B', url: 'https://quillbot.com' },
-    { g: 'B', url: 'https://www.notion.so/product/ai' },
-    { g: 'B', url: 'https://notebooklm.google.com' },
-    { g: 'B', url: 'https://consensus.app' },
-    { g: 'B', url: 'https://typeset.io' },
-    { g: 'B', url: 'https://www.wolframalpha.com' },
-    { g: 'B', url: 'https://photomath.com' },
-    { g: 'B', url: 'https://quizlet.com' },
-    // C — Imágenes
-    { g: 'C', url: 'https://www.midjourney.com' },
-    { g: 'C', url: 'https://openai.com/dall-e' },
-    { g: 'C', url: 'https://firefly.adobe.com' },
-    { g: 'C', url: 'https://leonardo.ai' },
-    { g: 'C', url: 'https://ideogram.ai' },
-    { g: 'C', url: 'https://stability.ai' },
-    { g: 'C', url: 'https://www.recraft.ai' },
-    { g: 'C', url: 'https://www.canva.com/magic' },
-    // D — Video
-    { g: 'D', url: 'https://runwayml.com' },
-    { g: 'D', url: 'https://deepmind.google/technologies/veo' },
-    { g: 'D', url: 'https://openai.com/sora' },
-    { g: 'D', url: 'https://klingai.com' },
-    { g: 'D', url: 'https://pika.art' },
-    { g: 'D', url: 'https://www.capcut.com' },
-    { g: 'D', url: 'https://www.heygen.com' },
-    { g: 'D', url: 'https://www.synthesia.io' },
-    { g: 'D', url: 'https://www.opus.pro' },
-    { g: 'D', url: 'https://www.descript.com' },
-    // E — Voz, música y audio
-    { g: 'E', url: 'https://elevenlabs.io' },
-    { g: 'E', url: 'https://suno.com' },
-    { g: 'E', url: 'https://www.udio.com' },
-    { g: 'E', url: 'https://murf.ai' },
-    { g: 'E', url: 'https://otter.ai' },
-    { g: 'E', url: 'https://fireflies.ai' },
-    // F — Programación y automatización
-    { g: 'F', url: 'https://github.com/features/copilot' },
-    { g: 'F', url: 'https://cursor.com' },
-    { g: 'F', url: 'https://replit.com' },
-    { g: 'F', url: 'https://zapier.com' },
-    { g: 'F', url: 'https://n8n.io' },
-    { g: 'F', url: 'https://lovable.dev' },
-    { g: 'F', url: 'https://github.com' },
-    { g: 'F', url: 'https://console.firebase.google.com' },
-    { g: 'F', url: 'https://vercel.com' },
-    // G — Oficina
-    { g: 'G', url: 'https://www.office.com/launch/word' },
-    { g: 'G', url: 'https://www.office.com/launch/excel' },
-    { g: 'G', url: 'https://www.office.com/launch/powerpoint' },
-    { g: 'G', url: 'https://docs.google.com' },
-    { g: 'G', url: 'https://sheets.google.com' },
-    { g: 'G', url: 'https://slides.google.com' },
-    // H — Archivos / almacenamiento
-    { g: 'H', url: 'https://drive.google.com' },
-    { g: 'H', url: 'https://photos.google.com' },
-    { g: 'H', url: 'https://www.dropbox.com' },
-    { g: 'H', url: 'https://onedrive.live.com' },
-    // I — Redes / social
-    { g: 'I', url: 'https://www.youtube.com' },
-    { g: 'I', url: 'https://studio.youtube.com' },
-    { g: 'I', url: 'https://www.tiktok.com' },
-    { g: 'I', url: 'https://www.instagram.com' },
-    { g: 'I', url: 'https://x.com' }
-  ];
-  const BUILTIN_COUNT = {};
-  LINKS.forEach(l => { BUILTIN_COUNT[l.g] = (BUILTIN_COUNT[l.g] || 0) + 1; });
-
-  function allComponents() {
-    const arr = [], cnt = {};
-    LINKS.forEach(l => { cnt[l.g] = (cnt[l.g] || 0) + 1; arr.push({ g: l.g, n: cnt[l.g], code: l.g + cnt[l.g], t: 'link', url: l.url, builtin: true }); });
-    comps.forEach(c => arr.push({ g: c.g, n: parseInt(c.code.slice(1), 10) || 0, code: c.code, t: c.t, url: c.url, text: c.text, builtin: false, rec: c.rec }));
-    return arr;
-  }
-
-  async function nextCompCode(g) {
-    const c = (await store('meta', 'readonly', s => s.get('compCounters'))) || {};
-    c[g] = Math.max(c[g] || 0, BUILTIN_COUNT[g] || 0) + 1;
-    await store('meta', 'readwrite', s => s.put(c, 'compCounters'));
-    return g + c[g];
-  }
-  async function addComponent(o) {
-    const code = await nextCompCode(o.g);
-    const m = await seal(enc.encode(JSON.stringify({ t: o.t, g: o.g, url: o.url || '', text: o.text || '', date: Date.now() })));
-    await store('comps', 'readwrite', s => s.put({ id: crypto.randomUUID(), code, iv: m.iv, ct: m.ct }));
-    return code;
-  }
-  async function loadComps() {
-    const rows = await store('comps', 'readonly', s => s.getAll());
-    const out = [];
-    for (const r of rows) {
-      try { const m = JSON.parse(dec.decode(await unseal(r.iv, r.ct))); out.push({ rec: r, code: r.code, t: m.t, g: m.g, url: m.url, text: m.text }); } catch (e) {}
-    }
-    comps = out;
-    renderPanel();
-  }
-  async function removeComp(c) {
-    await store('comps', 'readwrite', s => s.delete(c.rec.id));
-    logEv(c.code + ' borrado');
-    await loadComps();
-  }
-  /* Los accesos directos guardados antes en texto plano pasan a quedar cifrados */
-  async function migrateOld() {
-    let old = [];
-    try { old = JSON.parse(localStorage.getItem('panel.custom') || '[]'); } catch (e) { old = []; }
-    if (!Array.isArray(old) || !old.length) return;
-    const OLD = { 'IAs': 'A', 'Oficina': 'B', 'Redes y video': 'C', 'Desarrollo': 'D', 'Archivos': 'E' };
-    for (const l of old) {
-      const url = l && normUrl(l.url); if (!url) continue;
-      let g = String(l.g || OLD[l.cat] || 'Z').toUpperCase().slice(0, 1);
-      if (!/^[A-Z]$/.test(g)) g = 'Z';
-      await addComponent({ t: 'link', g, url });
-    }
-    try { localStorage.removeItem('panel.custom'); } catch (e) {}
-    logEv('P0 cifrado');
-  }
-
-  function card(c) {
-    const cw = el('div', { class: 'cw' });
-    if (c.t === 'note') {
-      cw.append(el('button', { class: 'card note enc', type: 'button', 'aria-label': c.code, onclick: () => openNote(c) }, el('span', { class: 'n' }, c.code)));
-    } else {
-      cw.append(el('a', { class: 'card' + (c.builtin ? '' : ' enc'), href: c.url, target: '_blank', rel: 'noopener noreferrer', 'aria-label': c.code }, el('span', { class: 'n' }, c.code)));
-    }
-    if (!c.builtin) {
-      const x = el('button', { class: 'x', type: 'button', 'aria-label': 'Quitar ' + c.code }, '×');
-      let armed = false;
-      x.addEventListener('click', () => {
-        if (!armed) { armed = true; x.textContent = '¿?'; x.style.color = 'var(--red)'; setTimeout(() => { armed = false; x.textContent = '×'; x.style.color = ''; }, 3000); return; }
-        removeComp(c);
-      });
-      cw.append(x);
-    }
-    return cw;
-  }
-
-  function renderPanel() {
-    const q = $('#q').value.trim().toLowerCase();
-    const all = allComponents();
-    const groups = [...new Set(all.map(c => c.g))].sort();
-    const root = $('#cats'); root.replaceChildren();
-    let shown = 0;
-    groups.forEach(g => {
-      const its = all.filter(c => c.g === g).sort((a, b) => a.n - b.n);
-      const vis = its.filter(c => !q || c.code.toLowerCase().includes(q));
-      if (!vis.length) return;
-      shown += vis.length;
-      const head = el('div', { class: 'mod-h' },
-        el('span', { class: 'mod-l' }, g), el('span', { class: 'muted' }, String(its.length)),
-        el('button', { class: 'btn small ghost add', type: 'button', 'aria-label': 'Agregar en ' + g, onclick: () => openDialog(g) }, '+'));
-      const grid = el('div', { class: 'cgrid' });
-      vis.forEach(c => grid.append(card(c)));
-      root.append(el('div', { class: 'mod' }, head, grid));
-    });
-    if (!shown) root.append(el('div', { class: 'empty' }, 'Sin resultados. Prueba otro código o agrega un componente.'));
-    renderSide();
-  }
-  $('#q').addEventListener('input', renderPanel);
-
-  function renderSide() {
-    const n = k => items.filter(i => i.kind === k).length;
-    const v = { k1: n('Documento'), k2: n('Imagen'), k3: n('Enlace'), k4: n('Otro'), p0: comps.length, v1: vdata.length };
-    const max = Math.max(1, ...Object.values(v));
-    for (const k in v) { $('#q-' + k).textContent = v[k]; $('#m-' + k).style.width = (v[k] / max * 100) + '%'; }
-    updStorage(); updHex();
-  }
-
-  /* ---------- Agregar componente ---------- */
-  let dType = 'link';
-  function setType(t) {
-    dType = t;
-    $('#d-t-link').setAttribute('aria-pressed', String(t === 'link'));
-    $('#d-t-note').setAttribute('aria-pressed', String(t === 'note'));
-    $('#d-url').hidden = t !== 'link'; $('#d-text').hidden = t !== 'note';
-  }
-  $('#d-t-link').addEventListener('click', () => setType('link'));
-  $('#d-t-note').addEventListener('click', () => setType('note'));
-  function openDialog(g) {
-    setType('link');
-    $('#d-g').value = g || ''; $('#d-url').value = ''; $('#d-text').value = ''; setMsg($('#d-msg'), '');
-    const box = $('#d-gs'); box.replaceChildren();
-    [...new Set(allComponents().map(c => c.g))].sort().forEach(l =>
-      box.append(el('button', { class: 'chip', type: 'button', onclick: () => { $('#d-g').value = l; } }, l)));
-    $('#dlg').hidden = false; (g ? $('#d-url') : $('#d-g')).focus();
-  }
-  function closeDialog() { $('#dlg').hidden = true; }
-  $('#add-open').addEventListener('click', () => openDialog(''));
-  $('#d-x').addEventListener('click', closeDialog);
-  $('#d-g').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, ''); });
-  $('#d-save').addEventListener('click', async () => {
-    const msg = $('#d-msg');
-    const g = $('#d-g').value.trim().toUpperCase();
-    if (!/^[A-Z]$/.test(g)) return setMsg(msg, 'Elige una letra de categoría (A–Z).', 'err');
-    let o;
-    if (dType === 'link') {
-      const url = normUrl($('#d-url').value);
-      if (!url) return setMsg(msg, 'Escribe una dirección válida.', 'err');
-      o = { t: 'link', g, url };
-    } else {
-      const text = $('#d-text').value.trim();
-      if (!text) return setMsg(msg, 'Escribe el texto de la nota.', 'err');
-      o = { t: 'note', g, text };
-    }
-    $('#d-save').disabled = true; setMsg(msg, 'Cifrando…');
-    try {
-      const code = await addComponent(o);
-      logEv(code + ' cifrado y guardado');
-      closeDialog(); show('panel'); await loadComps();
-    } catch (e) { setMsg(msg, 'No se pudo guardar el componente.', 'err'); }
-    finally { $('#d-save').disabled = false; }
-  });
-
-  function openNote(c) {
-    const body = $('#v-body'); body.replaceChildren();
-    const msg = el('span', { class: 'muted' });
-    const copy = el('button', { class: 'btn small', type: 'button', onclick: async () => {
-      try { await navigator.clipboard.writeText(c.text); msg.textContent = ' Copiado'; }
-      catch (e) { msg.textContent = ' No se pudo copiar solo; selecciona el texto.'; }
-    } }, 'Copiar');
-    body.append(el('div', {}, copy, msg), el('pre', {}, c.text));
-    $('#v-title').textContent = c.code; $('#viewer').hidden = false;
-  }
-
-  /* =========================================================
-     ARCHIVO: clasificación y códigos
-     ========================================================= */
-  const MAX_BYTES = 25 * 1024 * 1024;
-  const KINDS = ['Todo', 'Documento', 'Imagen', 'Enlace', 'Otro'];
-
-  async function nextCode(prefix) {
-    const c = (await store('meta', 'readonly', s => s.get('counters'))) || {};
-    c[prefix] = (c[prefix] || 0) + 1;
-    await store('meta', 'readwrite', s => s.put(c, 'counters'));
-    return prefix + '-' + String(c[prefix]).padStart(4, '0');
-  }
-  function classifyFile(f) {
-    const ext = (f.name.split('.').pop() || '').toLowerCase();
-    if ((f.type || '').startsWith('image/')) return { pre: 'K2', kind: 'Imagen', sub: 'M6' };
-    const docs = { pdf: 'M1', doc: 'M2', docx: 'M2', odt: 'M2', xls: 'M3', xlsx: 'M3', csv: 'M3', ppt: 'M4', pptx: 'M4', txt: 'M5', md: 'M5', json: 'M5' };
-    if (docs[ext]) return { pre: 'K1', kind: 'Documento', sub: docs[ext] };
-    return { pre: 'K4', kind: 'Otro', sub: 'M0' };
-  }
-  function classifyLink(url) {
-    const h = host(url);
-    const map = [['youtube.com', 'N1'], ['youtu.be', 'N1'], ['tiktok.com', 'N2'], ['github.com', 'N3'], ['docs.google.com', 'N4'], ['drive.google.com', 'N5'], ['firebase', 'N6']];
-    for (const m of map) if (h.includes(m[0])) return m[1];
-    return 'N0';
-  }
-
-  async function refresh() {
-    const rows = await store('items', 'readonly', s => s.getAll());
-    const out = [];
-    for (const r of rows) {
-      try { out.push(Object.assign({ rec: r }, JSON.parse(dec.decode(await unseal(r.miv, r.mct))))); } catch (e) {}
-    }
-    out.sort((a, b) => b.date - a.date);
-    items = out;
-    renderList(); renderSide();
-  }
-  function renderChips() {
-    const box = $('#chips'); box.replaceChildren();
-    KINDS.forEach(k => {
-      const n = k === 'Todo' ? items.length : items.filter(i => i.kind === k).length;
-      const label = ({ Todo: 'F0', Documento: 'F1', Imagen: 'F2', Enlace: 'F3', Otro: 'F4' })[k] + ' · ' + n;
-      box.append(el('button', { class: 'chip', type: 'button', 'aria-pressed': String(filter === k), onclick: () => { filter = k; renderList(); } }, label));
-    });
-  }
-  function renderList() {
-    renderChips();
-    $('#count').textContent = items.length + (items.length === 1 ? ' elemento' : ' elementos');
-    const q = $('#vq').value.trim().toLowerCase();
-    const list = $('#list'); list.replaceChildren();
-    const shown = items.filter(i => (filter === 'Todo' || i.kind === filter) &&
-      (!q || [i.rec.code, i.name, i.sub, i.note || '', i.url || ''].join(' ').toLowerCase().includes(q)));
-    if (!shown.length) {
-      list.append(el('li', { class: 'empty' }, items.length ? 'Sin resultados con este filtro.' : 'El archivo está vacío. Sube un documento, una imagen o guarda un enlace.'));
-      return;
-    }
-    shown.forEach(i => list.append(row(i)));
-  }
-  $('#vq').addEventListener('input', renderList);
-
-  function row(it) {
-    const fecha = new Date(it.date).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
-    const detail = it.kind === 'Enlace'
-      ? it.sub + '  ·  ' + fecha + (it.note ? '  ·  ' + it.note : '')
-      : it.sub + '  ·  ' + fmtSize(it.size) + '  ·  ' + fecha + '  ·  ' + it.source;
-    const acts = el('div', { class: 'fa' });
-    if (it.kind === 'Enlace') {
-      acts.append(el('a', { class: 'btn small', href: it.url, target: '_blank', rel: 'noopener noreferrer' }, 'Abrir'));
-    } else {
-      const viewable = it.kind === 'Imagen' || (it.type || '').startsWith('text/') || /\.(txt|md|json|csv)$/i.test(it.name);
-      if (viewable) acts.append(el('button', { class: 'btn small', type: 'button', onclick: () => preview(it) }, 'Ver'));
-      acts.append(el('button', { class: 'btn small', type: 'button', onclick: () => download(it) }, 'Bajar'));
-    }
-    let armed = false;
-    const del = el('button', { class: 'btn danger small', type: 'button' }, 'Borrar');
-    del.addEventListener('click', async () => {
-      if (!armed) { armed = true; del.textContent = '¿Seguro?'; setTimeout(() => { armed = false; del.textContent = 'Borrar'; }, 3500); return; }
-      await store('items', 'readwrite', s => s.delete(it.rec.id)); logEv(it.rec.code + ' borrado'); refresh();
-    });
-    acts.append(del);
-    return el('li', {}, el('div', { class: 'code' }, it.rec.code), el('div', { class: 'fn' }, it.name), acts, el('div', { class: 'fm' }, detail));
-  }
-
-  async function addRecord(pre, meta, data) {
-    const code = await nextCode(pre);
-    const m = await seal(enc.encode(JSON.stringify(meta)));
-    const rec = { id: crypto.randomUUID(), code, miv: m.iv, mct: m.ct };
-    if (data) { const b = await seal(data); rec.iv = b.iv; rec.ct = b.ct; }
-    await store('items', 'readwrite', s => s.put(rec));
-    return code;
-  }
-
-  async function handleFiles(files) {
-    const msg = $('#v-msg');
-    for (const f of files) {
-      if (f.size > MAX_BYTES) { setMsg(msg, f.name + ': supera el límite de 25 MB.', 'err'); continue; }
-      setMsg(msg, 'Cifrando ' + f.name + '…');
-      try {
-        const c = classifyFile(f);
-        const code = await addRecord(c.pre, { kind: c.kind, sub: c.sub, name: f.name, type: f.type || '', size: f.size, date: Date.now(), source: 'S1' }, await f.arrayBuffer());
-        logEv(code + ' guardado');
-        setMsg(msg, 'Guardado como ' + code + ': ' + f.name);
-      } catch (e) { setMsg(msg, 'No se pudo guardar ' + f.name + '. Puede faltar espacio en el dispositivo.', 'err'); }
-    }
-    refresh();
-  }
-  $('#up-btn').addEventListener('click', () => $('#up-in').click());
-  $('#up-in').addEventListener('change', ev => { const f = [...ev.target.files]; ev.target.value = ''; handleFiles(f); });
-  const drop = $('#drop');
-  drop.addEventListener('click', () => $('#up-in').click());
-  drop.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); $('#up-in').click(); } });
-  ['dragenter', 'dragover'].forEach(n => drop.addEventListener(n, ev => { ev.preventDefault(); drop.classList.add('over'); }));
-  ['dragleave', 'drop'].forEach(n => drop.addEventListener(n, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
-  drop.addEventListener('drop', ev => { if (ev.dataTransfer && ev.dataTransfer.files.length) handleFiles([...ev.dataTransfer.files]); });
-
-  $('#lk-btn').addEventListener('click', () => { const f = $('#linkform'); f.hidden = !f.hidden; if (!f.hidden) $('#l-url').focus(); });
-  $('#l-save').addEventListener('click', async () => {
-    const msg = $('#v-msg');
-    const url = normUrl($('#l-url').value);
-    if (!url) return setMsg(msg, 'Escribe una dirección válida.', 'err');
-    try {
-      const name = $('#l-name').value.trim() || classifyLink(url);
-      const code = await addRecord('K3', { kind: 'Enlace', sub: classifyLink(url), name, url, note: $('#l-note').value.trim(), date: Date.now(), source: 'S1' }, null);
-      $('#l-url').value = ''; $('#l-name').value = ''; $('#l-note').value = '';
-      logEv(code + ' guardado');
-      setMsg(msg, 'Guardado como ' + code + ': ' + name);
-      refresh();
-    } catch (e) { setMsg(msg, 'No se pudo guardar el enlace.', 'err'); }
-  });
-
-  let viewerUrl = null;
-  function closeViewer() {
-    $('#viewer').hidden = true; $('#v-body').replaceChildren();
-    if (viewerUrl) { URL.revokeObjectURL(viewerUrl); viewerUrl = null; }
-  }
-  $('#v-close').addEventListener('click', closeViewer);
-  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') { closeViewer(); closeDialog(); } });
-
-  async function preview(it) {
-    const msg = $('#v-msg');
-    try {
-      const buf = await unseal(it.rec.iv, it.rec.ct);
-      const body = $('#v-body'); body.replaceChildren();
-      if (it.kind === 'Imagen') {
-        const url = URL.createObjectURL(new Blob([buf], { type: it.type }));
-        const img = el('img', { src: url, alt: it.name });
-        img.addEventListener('error', () => body.replaceChildren('No se pudo mostrar esta imagen aquí.'));
-        body.append(img); viewerUrl = url;
-      } else body.append(el('pre', {}, dec.decode(buf)));
-      $('#v-title').textContent = it.rec.code + '  ' + it.name; $('#viewer').hidden = false;
-    } catch (e) { setMsg(msg, 'No se pudo abrir el archivo.', 'err'); }
-  }
-  async function download(it) {
-    const msg = $('#v-msg');
-    try {
-      const buf = await unseal(it.rec.iv, it.rec.ct);
-      const url = URL.createObjectURL(new Blob([buf], { type: it.type || 'application/octet-stream' }));
-      const a = el('a', { href: url, download: it.name });
-      document.body.append(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
-      setMsg(msg, 'Descarga solicitada: ' + it.name + '. Si no aparece, el navegador la bloqueó en esta vista.', 'warn');
-    } catch (e) { setMsg(msg, 'No se pudo descifrar el archivo.', 'err'); }
-  }
-
-  let wipeArmed = false;
-  $('#wipe').addEventListener('click', async () => {
-    const b = $('#wipe');
-    if (!wipeArmed) { wipeArmed = true; b.textContent = '¿Seguro? Toca otra vez'; setTimeout(() => { wipeArmed = false; b.textContent = 'Borrar todo el archivo'; }, 4000); return; }
-    wipeArmed = false; b.textContent = 'Borrar todo el archivo';
-    runShred('archivo T2');
-    await store('items', 'readwrite', s => s.clear());
-    await store('meta', 'readwrite', s => s.delete('counters'));
-    logEv('T2 vaciado');
-    refresh();
-  });
-
-  /* =========================================================
-     T4: datos cifrados con su propio código
-     Capa 1: código de cifrado del dato (AES-256 + PBKDF2)
-     Capa 2: llave de la sesión
-     ========================================================= */
-  let vdata = [];
-  const dfails = {};
-  function concat3(a, b, c) {
-    const o = new Uint8Array(a.length + b.length + c.byteLength);
-    o.set(a, 0); o.set(b, a.length); o.set(new Uint8Array(c), a.length + b.length);
-    return o;
-  }
-  async function entryKey(code, salt) {
-    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 250000, hash: 'SHA-256' },
-      await baseKey(code), { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-  }
-  function genCode() {
-    const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    const b = crypto.getRandomValues(new Uint8Array(16));
-    const s = [...b].map(x => abc[x % abc.length]).join('');
-    return s.slice(0, 4) + '-' + s.slice(4, 8) + '-' + s.slice(8, 12) + '-' + s.slice(12, 16);
-  }
-  async function nextVCode() {
-    const n = ((await store('meta', 'readonly', s => s.get('vcounter'))) || 0) + 1;
-    await store('meta', 'readwrite', s => s.put(n, 'vcounter'));
-    return 'V1-' + String(n).padStart(4, '0');
-  }
-  async function loadData() {
-    const rows = await store('vault', 'readonly', s => s.getAll());
-    vdata = rows.sort((a, b) => b.date - a.date);
-    renderData(); renderSide();
-  }
-  function renderData() {
-    const list = $('#dlist'); list.replaceChildren();
-    $('#z-cnt').textContent = vdata.length + (vdata.length === 1 ? ' dato cifrado' : ' datos cifrados');
-    if (!vdata.length) { list.append(el('li', { class: 'empty' }, 'Todavía no hay datos. Pega uno arriba y ponle su código.')); return; }
-    vdata.forEach(r => {
-      const fecha = new Date(r.date).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
-      const base = fecha + '  ·  ' + fmtSize(r.oct.byteLength) + '  ·  cifrado';
-      const input = el('input', { class: 'field', type: 'password', placeholder: 'código de cifrado', 'aria-label': 'Código de cifrado de ' + r.code, autocomplete: 'off', spellcheck: 'false' });
-      const fm = el('div', { class: 'fm' }, base);
-      let working = false;
-      async function go() {
-        if (working) return;
-        const c = input.value.trim();
-        if (!c) { fm.className = 'fm bad'; fm.textContent = 'Escribe el código de cifrado.'; return; }
-        working = true; fm.className = 'fm'; fm.textContent = 'descifrando…';
-        try {
-          const inner = new Uint8Array(await unseal(r.oiv, r.oct));
-          const k = await entryKey(c, inner.slice(0, 16));
-          let data;
-          try { data = JSON.parse(dec.decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: inner.slice(16, 28) }, k, inner.slice(28)))); }
-          catch (e) {
-            dfails[r.id] = (dfails[r.id] || 0) + 1;
-            fm.className = 'fm bad'; fm.textContent = 'Código incorrecto.';
-            await new Promise(res => setTimeout(res, Math.min(500 * dfails[r.id], 4000)));
-            return;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CETPRO // CYBER_CORE v2.0 - ARCHIVE & ATTENDANCE</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Fonts: Share Tech Mono & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            mono: ['"JetBrains Mono"', '"Share Tech Mono"', 'monospace'],
+          },
+          colors: {
+            cyber: {
+              black: '#030712',
+              dark: '#070f1e',
+              panel: 'rgba(5, 15, 30, 0.85)',
+              green: '#00ff66',
+              cyan: '#00f0ff',
+              magenta: '#ff0055',
+              yellow: '#ffcc00',
+              border: 'rgba(0, 240, 255, 0.3)',
+            }
+          },
+          boxShadow: {
+            'neon-green': '0 0 15px rgba(0, 255, 102, 0.4), inset 0 0 15px rgba(0, 255, 102, 0.1)',
+            'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.4), inset 0 0 15px rgba(0, 240, 255, 0.1)',
+            'neon-red': '0 0 15px rgba(255, 0, 85, 0.4), inset 0 0 15px rgba(255, 0, 85, 0.1)',
           }
-          dfails[r.id] = 0; input.value = ''; fm.textContent = base;
-          showData(r.code, data);
-        } catch (e) { fm.className = 'fm bad'; fm.textContent = 'No se pudo abrir este dato.'; }
-        finally { working = false; }
-      }
-      input.addEventListener('keydown', ev => { if (ev.key === 'Enter') go(); });
-      let armed = false;
-      const del = el('button', { class: 'btn danger small', type: 'button' }, 'Borrar');
-      del.addEventListener('click', async () => {
-        if (!armed) { armed = true; del.textContent = '¿Seguro?'; setTimeout(() => { armed = false; del.textContent = 'Borrar'; }, 3500); return; }
-        await store('vault', 'readwrite', s => s.delete(r.id)); logEv(r.code + ' borrado'); loadData();
-      });
-      list.append(el('li', {}, el('div', { class: 'code' }, r.code), el('div', { class: 'fn' }, input), el('div', { class: 'fa' }, el('button', { class: 'btn small', type: 'button', onclick: go }, 'Abrir'), del), fm));
-    });
-  }
-  function showData(code, data) {
-    const body = $('#v-body'); body.replaceChildren();
-    const msg = el('span', { class: 'muted' });
-    const copy = el('button', { class: 'btn small', type: 'button', onclick: async () => {
-      try { await navigator.clipboard.writeText(data.text); msg.textContent = ' Copiado'; }
-      catch (e) { msg.textContent = ' No se pudo copiar solo; selecciona el texto.'; }
-    } }, 'Copiar');
-    body.append(el('div', {}, copy, msg), el('pre', {}, data.text));
-    $('#v-title').textContent = code + (data.title ? '  ' + data.title : '');
-    $('#viewer').hidden = false;
-    logEv(code + ' abierto');
-  }
-
-  $('#z-gen').addEventListener('click', () => { $('#z-code').value = genCode(); });
-  $('#z-file').addEventListener('click', () => $('#z-fin').click());
-  $('#z-fin').addEventListener('change', async ev => {
-    const f = ev.target.files[0]; ev.target.value = '';
-    const msg = $('#z-msg');
-    if (!f) return;
-    if (f.size > 500000) return setMsg(msg, 'El archivo supera el límite de 500 KB de texto.', 'err');
-    try {
-      $('#z-text').value = await f.text();
-      if (!$('#z-title').value) $('#z-title').value = f.name;
-      setMsg(msg, 'Texto cargado. Ponle un código y guárdalo.');
-    } catch (e) { setMsg(msg, 'No se pudo leer el archivo.', 'err'); }
-  });
-  $('#z-save').addEventListener('click', async () => {
-    const msg = $('#z-msg');
-    const text = $('#z-text').value, code = $('#z-code').value.trim(), title = $('#z-title').value.trim();
-    if (!text.trim()) return setMsg(msg, 'Pega el dato o documento que quieres guardar.', 'err');
-    if (code.length < 8) return setMsg(msg, 'El código de cifrado necesita al menos 8 caracteres.', 'err');
-    const btn = $('#z-save'); btn.disabled = true; setMsg(msg, 'Cifrando…');
-    try {
-      const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
-      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await entryKey(code, salt), enc.encode(JSON.stringify({ title, text })));
-      const outer = await seal(concat3(salt, iv, ct));
-      const vcode = await nextVCode();
-      await store('vault', 'readwrite', s => s.put({ id: crypto.randomUUID(), code: vcode, date: Date.now(), oiv: outer.iv, oct: outer.ct }));
-      $('#z-text').value = ''; $('#z-title').value = ''; $('#z-code').value = '';
-      logEv(vcode + ' cifrado');
-      await loadData();
-      setMsg(msg, 'Guardado como ' + vcode + '. Tu código de cifrado es: ' + code + '  — guárdalo: sin él no hay forma de abrirlo.', 'warn');
-    } catch (e) { setMsg(msg, 'No se pudo guardar el dato.', 'err'); }
-    finally { btn.disabled = false; }
-  });
-
-  /* =========================================================
-     HUD: energía, espectro, volcado hexadecimal
-     ========================================================= */
-  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let energy = 0;
-  function bump(x) { energy = Math.min(1, energy + x); }
-  document.addEventListener('keydown', () => bump(.07));
-  document.addEventListener('click', () => bump(.18));
-
-  function typeLine(node, text) {
-    if (!node || REDUCED) return;
-    let i = 0; node.textContent = '';
-    const id = setInterval(() => {
-      i += 2;
-      node.textContent = text.slice(0, i) + (i < text.length ? '_' : '');
-      if (i >= text.length) clearInterval(id);
-    }, 18);
-  }
-
-  (function spectrum() {
-    const cv = $('#spec');
-    if (!cv || REDUCED) return;
-    const ctx = cv.getContext('2d'), N = 44, vals = new Array(N).fill(0);
-    let last = 0;
-    function draw(t) {
-      requestAnimationFrame(draw);
-      if (document.hidden || $('#app').hidden || t - last < 66) return;
-      last = t;
-      const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
-      if (!w || !h) return;
-      if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
-      energy *= 0.92;
-      const bw = w / N;
-      ctx.fillStyle = '#39ff14'; ctx.shadowColor = '#39ff14'; ctx.shadowBlur = 6;
-      for (let i = 0; i < N; i++) {
-        const target = Math.random() * (0.10 + energy * 0.9) * (0.6 + 0.4 * Math.sin(i / N * Math.PI));
-        vals[i] += (target - vals[i]) * 0.45;
-        const bh = Math.max(2, vals[i] * (h - 22));
-        ctx.fillRect(i * bw + 1, h - bh, bw - 2, bh);
-      }
-      ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(57,255,20,.35)'; ctx.fillRect(0, h - 1, w, 1);
-    }
-    requestAnimationFrame(draw);
-  })();
-
-  /* Volcado hexadecimal real del último dato cifrado guardado */
-  function updHex() {
-    const pre = $('#hex'), hh = $('#hx-h');
-    if (!pre) return;
-    let best = null;
-    vdata.forEach(r => { if (!best || r.date > best.date) best = { code: r.code, date: r.date, buf: r.oct }; });
-    items.forEach(i => { if (i.rec.ct && (!best || i.date > best.date)) best = { code: i.rec.code, date: i.date, buf: i.rec.ct }; });
-    if (!best && comps.length) { const c = comps[comps.length - 1]; best = { code: c.code, date: 0, buf: c.rec.ct }; }
-    if (!best) { hh.textContent = 'H0'; pre.textContent = Array(7).fill('0000  -- -- -- -- -- -- -- --').join('\n'); return; }
-    const b = new Uint8Array(best.buf.slice(0, 56)), lines = [];
-    for (let i = 0; i < b.length; i += 8) {
-      lines.push(i.toString(16).padStart(4, '0') + '  ' + [...b.slice(i, i + 8)].map(x => x.toString(16).padStart(2, '0')).join(' ').toUpperCase());
-    }
-    hh.textContent = 'H0 · ' + best.code; pre.textContent = lines.join('\n');
-  }
-  updHex();
-
-
-  /* =========================================================
-     T5 — MAPA PERSONAL (solo tu ubicación) + sitios turísticos
-     ========================================================= */
-  (function trackModule() {
-    const cv = $('#worldmap');
-    if (!cv) return;
-    const ctx = cv.getContext('2d');
-    let raf = 0, me = null, markers = [], pulse = 0;
-
-    const CITIES = [
-      { n: 'LIM', lat: -12.05, lon: -77.04 }, { n: 'BOG', lat: 4.71, lon: -74.07 },
-      { n: 'MEX', lat: 19.43, lon: -99.13 }, { n: 'BUE', lat: -34.60, lon: -58.38 },
-      { n: 'SCL', lat: -33.45, lon: -70.67 }, { n: 'NYC', lat: 40.71, lon: -74.01 },
-      { n: 'LON', lat: 51.51, lon: -0.13 }, { n: 'PAR', lat: 48.86, lon: 2.35 },
-      { n: 'BER', lat: 52.52, lon: 13.40 }, { n: 'TKY', lat: 35.68, lon: 139.69 },
-      { n: 'SYD', lat: -33.87, lon: 151.21 }, { n: 'CAI', lat: 30.04, lon: 31.24 },
-      { n: 'Cusco', lat: -13.52, lon: -71.98 }, { n: 'Machu Picchu', lat: -13.16, lon: -72.54 },
-      { n: 'Cartagena', lat: 10.39, lon: -75.51 }, { n: 'Cancún', lat: 21.16, lon: -86.85 },
-      { n: 'Barcelona', lat: 41.39, lon: 2.17 }, { n: 'Roma', lat: 41.90, lon: 12.50 },
-      { n: 'Bali', lat: -8.34, lon: 115.09 }, { n: 'SAO', lat: -23.55, lon: -46.63 }
-    ];
-
-    function project(lat, lon, w, h) {
-      return [(lon + 180) / 360 * w, (90 - lat) / 180 * h];
-    }
-
-    function drawBase(w, h) {
-      ctx.fillStyle = '#020a02';
-      ctx.fillRect(0, 0, w, h);
-      ctx.strokeStyle = 'rgba(57,255,20,0.08)';
-      ctx.lineWidth = 1;
-      for (let x = 0; x < w; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
-      for (let y = 0; y < h; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-      ctx.strokeStyle = 'rgba(57,255,20,0.18)';
-      ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h); ctx.stroke();
-      ctx.fillStyle = 'rgba(15,60,25,0.55)';
-      [[0.12,0.28,0.18,0.38],[0.22,0.18,0.12,0.22],[0.48,0.22,0.16,0.28],[0.55,0.35,0.22,0.42],[0.72,0.20,0.18,0.30],[0.78,0.55,0.12,0.18],[0.85,0.70,0.10,0.14],[0.18,0.62,0.14,0.28],[0.42,0.68,0.10,0.16]].forEach(([x,y,bw,bh]) => {
-        ctx.beginPath();
-        ctx.ellipse(x * w, y * h, bw * w * 0.5, bh * h * 0.5, 0, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      ctx.fillStyle = 'rgba(57,255,20,0.3)';
-      CITIES.forEach(c => {
-        const [x, y] = project(c.lat, c.lon, w, h);
-        ctx.fillRect(x - 1, y - 1, 2, 2);
-      });
-    }
-
-    function drawPin(lat, lon, color, label, ring) {
-      const w = cv.width, h = cv.height;
-      const [x, y] = project(lat, lon, w, h);
-      if (ring) {
-        const r = 10 + Math.sin(pulse) * 4;
-        ctx.strokeStyle = color;
-        ctx.globalAlpha = 0.45;
-        ctx.beginPath(); ctx.arc(x, y, r + 8, 0, Math.PI * 2); ctx.stroke();
-        ctx.globalAlpha = 1;
-      }
-      ctx.fillStyle = color;
-      ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = color;
-      ctx.beginPath(); ctx.moveTo(x - 12, y); ctx.lineTo(x + 12, y); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(x, y - 12); ctx.lineTo(x, y + 12); ctx.stroke();
-      if (label) {
-        ctx.fillStyle = color;
-        ctx.font = '12px monospace';
-        ctx.fillText(label, x + 10, y - 8);
+        }
       }
     }
+  </script>
 
-    function drawFrame(ts) {
-      pulse = (ts / 350) % (Math.PI * 2);
-      drawBase(cv.width, cv.height);
-      markers.forEach(m => drawPin(m.lat, m.lon, '#ffd23f', m.name, false));
-      if (me) drawPin(me.lat, me.lon, '#39ff14', 'TÚ', true);
-      raf = requestAnimationFrame(drawFrame);
+  <style>
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: #030712;
+      color: #00f0ff;
+      overflow-x: hidden;
     }
 
-    function sizeMap() {
-      const rect = cv.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      const w = Math.max(600, Math.floor(rect.width * dpr));
-      const hh = Math.floor(w * 0.47);
-      if (cv.width !== w) { cv.width = w; cv.height = hh; }
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(drawFrame);
+    /* Scanline effect overlay */
+    .scanlines {
+      background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0),
+        rgba(255,255,255,0) 50%,
+        rgba(0, 0, 0, 0.4) 50%,
+        rgba(0, 0, 0, 0.4)
+      );
+      background-size: 100% 4px;
+      pointer-events: none;
     }
 
-    function logLine(txt, hit) {
-      const box = $('#tr-log');
-      if (!box) return;
-      const d = el('div', { class: hit ? 'hit' : '' }, new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + '  ' + txt);
-      box.prepend(d);
-      while (box.children.length > 10) box.lastChild.remove();
-    }
-
-    function setLinks(lat, lon, q) {
-      const acts = $('#tr-actions');
-      acts.hidden = false;
-      const query = encodeURIComponent(q || (lat + ',' + lon));
-      $('#tr-gmaps').href = 'https://www.google.com/maps/search/?api=1&query=' + query;
-      $('#tr-osm').href = (lat && lon) ? ('https://www.openstreetmap.org/#map=14/' + lat + '/' + lon) : ('https://www.openstreetmap.org/search?query=' + query);
-      $('#tr-book').href = 'https://www.booking.com/searchresults.html?ss=' + query;
-      $('#tr-trip').href = 'https://www.tripadvisor.com/Search?q=' + query;
-    }
-
-    function showMe(lat, lon, acc) {
-      me = { lat, lon, acc };
-      $('#tr-obj').textContent = 'TU POSICIÓN';
-      $('#tr-lat').textContent = lat.toFixed(5);
-      $('#tr-lon').textContent = lon.toFixed(5);
-      $('#tr-acc').textContent = acc != null ? Math.round(acc) + ' m' : '—';
-      $('#tr-sts').textContent = 'LIVE';
-      setLinks(lat, lon, lat + ',' + lon);
-      logLine('pos ' + lat.toFixed(5) + ', ' + lon.toFixed(5), true);
-      logEv('T5 me');
-      bump(0.5);
-    }
-
-    function locateMe() {
-      const msg = $('#tr-msg');
-      if (!navigator.geolocation) {
-        setMsg(msg, 'Este navegador no permite geolocalización.', 'err');
-        return;
-      }
-      setMsg(msg, 'Obteniendo tu ubicación…', 'warn');
-      $('#tr-sts').textContent = 'GPS…';
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          showMe(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
-          setMsg(msg, 'Ubicación obtenida (solo tuya).', 'ok');
-        },
-        err => {
-          $('#tr-sts').textContent = 'DENIED';
-          const reasons = {
-            1: 'Permiso denegado. Activa la ubicación para este sitio.',
-            2: 'No se pudo determinar la posición.',
-            3: 'Tiempo de espera agotado.'
-          };
-          setMsg(msg, reasons[err.code] || 'Error de geolocalización.', 'err');
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+    /* Cyber Chamfer Clip Paths for Tab Buttons & Cards */
+    .cyber-tile {
+      clip-path: polygon(
+        0 0, 
+        calc(100% - 15px) 0, 
+        100% 15px, 
+        100% 100%, 
+        15px 100%, 
+        0 calc(100% - 15px)
       );
     }
 
-    async function searchPlaces() {
-      const q = ($('#tr-q').value || '').trim();
-      const msg = $('#tr-msg');
-      const list = $('#tr-results');
-      list.replaceChildren();
-      if (!q) { setMsg(msg, 'Escribe un lugar o sitio turístico.', 'err'); return; }
-      setMsg(msg, 'Buscando…', 'warn');
-      logLine('search ' + q);
-      try {
-        const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=8&q=' + encodeURIComponent(q);
-        const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
-        if (!res.ok) throw new Error('http');
-        const data = await res.json();
-        if (!data.length) {
-          setMsg(msg, 'Sin resultados en OSM. Usa los botones externos.', 'warn');
-          setLinks(0, 0, q);
-          $('#tr-gmaps').href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
-          $('#tr-book').href = 'https://www.booking.com/searchresults.html?ss=' + encodeURIComponent(q);
-          $('#tr-trip').href = 'https://www.tripadvisor.com/Search?q=' + encodeURIComponent(q);
-          $('#tr-osm').href = 'https://www.openstreetmap.org/search?query=' + encodeURIComponent(q);
-          return;
+    .cyber-btn {
+      clip-path: polygon(
+        12px 0, 
+        100% 0, 
+        100% calc(100% - 12px), 
+        calc(100% - 12px) 100%, 
+        0 100%, 
+        0 12px
+      );
+      transition: all 0.2s ease-in-out;
+    }
+
+    .cyber-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Glitch text effect on hover */
+    .glitch-text:hover {
+      text-shadow: 2px 0 #ff0055, -2px 0 #00ff66;
+    }
+
+    /* Custom Scrollbar for Cyberpunk Terminal */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #050b14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #00f0ff;
+      border-radius: 2px;
+      box-shadow: 0 0 10px #00f0ff;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00ff66;
+    }
+
+    /* Pulse animations */
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.8)); }
+      50% { opacity: 0.6; filter: drop-shadow(0 0 2px rgba(0, 255, 102, 0.3)); }
+    }
+    .pulse-glow {
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
+
+  <!-- Background Matrix Rain Canvas -->
+  <canvas id="matrix-canvas" class="fixed inset-0 z-0 opacity-20 pointer-events-none"></canvas>
+  
+  <!-- CRT Scanline Screen Overlay -->
+  <div class="scanlines fixed inset-0 z-50 pointer-events-none opacity-40"></div>
+
+  <!-- TOAST NOTIFICATIONS (CYBER LOGS) -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-md w-full pointer-events-none"></div>
+
+  <!-- MODAL: EDIT MEMBER -->
+  <div id="edit-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="cyber-tile bg-slate-950/95 border-2 border-cyan-500 p-6 max-w-lg w-full shadow-neon-cyan relative">
+      <div class="flex justify-between items-center mb-4 pb-2 border-b border-cyan-500/30">
+        <h3 class="text-emerald-400 font-bold text-base flex items-center gap-2">
+          <i class="fa-solid fa-user-pen"></i> [MOD_MEMBER_DATA]
+        </h3>
+        <button id="close-edit-modal" class="text-slate-400 hover:text-rose-500 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="edit-member-form" class="space-y-4">
+        <input type="hidden" id="edit-member-id">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">&gt; NOMBRES</label>
+            <input type="text" id="edit-nombre" required class="w-full bg-slate-900 border border-cyan-500/40 text-cyan-300 px-3 py-2 text-xs focus:outline-none focus:border-cyan-400 focus:shadow-neon-cyan">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">&gt; APELLIDOS</label>
+            <input type="text" id="edit-apellido" required class="w-full bg-slate-900 border border-cyan-500/40 text-cyan-300 px-3 py-2 text-xs focus:outline-none focus:border-cyan-400 focus:shadow-neon-cyan">
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">&gt; DNI (8 DIG)</label>
+            <input type="text" id="edit-dni" maxlength="8" required class="w-full bg-slate-900 border border-cyan-500/40 text-cyan-300 px-3 py-2 text-xs focus:outline-none focus:border-cyan-400 focus:shadow-neon-cyan">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">&gt; EDAD</label>
+            <input type="number" id="edit-edad" min="10" max="99" required class="w-full bg-slate-900 border border-cyan-500/40 text-cyan-300 px-3 py-2 text-xs focus:outline-none focus:border-cyan-400 focus:shadow-neon-cyan">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">&gt; INGRESO</label>
+            <input type="date" id="edit-fecha" required class="w-full bg-slate-900 border border-cyan-500/40 text-cyan-300 px-3 py-2 text-xs focus:outline-none focus:border-cyan-400 focus:shadow-neon-cyan">
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6 pt-3 border-t border-cyan-500/20">
+          <button type="button" id="cancel-edit-btn" class="cyber-btn px-4 py-2 text-xs font-bold text-slate-400 border border-slate-600 hover:bg-slate-800">CANCELAR</button>
+          <button type="submit" class="cyber-btn px-4 py-2 text-xs font-bold bg-cyan-500 text-black shadow-neon-cyan hover:bg-cyan-400">GUARDAR_CAMBIOS</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- PANTALLA INTRO: HACK TERMINAL ENTRY -->
+  <div id="screen-intro" class="fixed inset-0 z-40 bg-black flex flex-col items-center justify-center p-4">
+    <div class="max-w-2xl w-full border border-emerald-500/50 bg-black/90 p-6 sm:p-8 rounded-none shadow-neon-green relative cyber-tile">
+      
+      <!-- Terminal Header bar -->
+      <div class="flex items-center justify-between border-b border-emerald-500/40 pb-3 mb-6 text-xs text-emerald-400">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 bg-rose-500 rounded-full inline-block"></span>
+          <span class="w-3 h-3 bg-yellow-500 rounded-full inline-block"></span>
+          <span class="w-3 h-3 bg-emerald-500 rounded-full inline-block"></span>
+          <span class="ml-2 font-bold tracking-wider">ROOT@CETPRO_CORE:~#</span>
+        </div>
+        <span class="text-slate-500">v2.0.26_CYBER</span>
+      </div>
+
+      <!-- Typewriter Output Box -->
+      <div id="typewriter-box" class="text-emerald-400 font-mono text-xs sm:text-sm space-y-2 min-h-[180px] leading-relaxed"></div>
+
+      <!-- Access Button (Shown after sequence) -->
+      <div id="intro-action" class="mt-8 flex justify-center opacity-0 transition-opacity duration-700">
+        <button id="btn-enter" class="cyber-btn bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold px-8 py-4 text-sm sm:text-base tracking-widest shadow-neon-green flex items-center gap-3 group">
+          <i class="fa-solid fa-terminal text-lg group-hover:animate-pulse"></i>
+          <span>[ INGRESAR AL SISTEMA / ACCESS SYSTEM ]</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div id="app-content" class="relative z-10 hidden flex-col min-h-screen">
+
+    <!-- TOP CYBER HEADER & NAVBAR -->
+    <header class="border-b border-cyan-500/30 bg-slate-950/90 backdrop-blur-md sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="flex flex-col sm:flex-row items-center justify-between py-3 gap-3">
+          
+          <!-- Brand Logo / Title -->
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 border border-cyan-400 bg-cyan-950/60 flex items-center justify-center text-cyan-400 shadow-neon-cyan">
+              <i class="fa-solid fa-microchip text-xl"></i>
+            </div>
+            <div>
+              <div class="text-xs font-extrabold tracking-widest text-emerald-400 flex items-center gap-2">
+                <span>CETPRO_CYBERNETICS</span>
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 pulse-glow"></span>
+              </div>
+              <p class="text-[10px] text-slate-400 uppercase tracking-wider">DATABASE &amp; ATTENDANCE CONTROL</p>
+            </div>
+          </div>
+
+          <!-- CYBER TAB NAVIGATION MENU -->
+          <nav class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+            <button id="tab-btn-registro" class="cyber-tab cyber-btn px-4 py-2 text-xs font-bold flex items-center gap-2 border border-cyan-500/50 bg-cyan-950/40 text-cyan-400 shadow-neon-cyan hover:text-white transition">
+              <i class="fa-solid fa-user-plus text-xs"></i>
+              <span>ADD_MEMBER</span>
+            </button>
+
+            <button id="tab-btn-asistencia" class="cyber-tab cyber-btn px-4 py-2 text-xs font-bold flex items-center gap-2 border border-slate-700 bg-slate-900/50 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/50 transition">
+              <i class="fa-solid fa-fingerprint text-xs"></i>
+              <span>ATTENDANCE_LOG</span>
+            </button>
+
+            <button id="tab-btn-status" class="cyber-tab cyber-btn px-4 py-2 text-xs font-bold flex items-center gap-2 border border-slate-700 bg-slate-900/50 text-slate-400 hover:text-emerald-400 hover:border-emerald-500/50 transition">
+              <i class="fa-solid fa-chart-line text-xs"></i>
+              <span>SYSTEM_STATUS</span>
+            </button>
+          </nav>
+
+        </div>
+      </div>
+
+      <!-- SYSTEM STATUS BANNER -->
+      <div class="bg-black/60 border-t border-cyan-500/20 py-1.5 px-4 text-[11px] text-slate-400 flex flex-wrap justify-between items-center gap-2">
+        <div class="flex items-center gap-4">
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-database text-cyan-400 text-[10px]"></i> ENGINE: <strong id="db-engine-badge" class="text-emerald-400">FIRESTORE_CONNECTED</strong></span>
+          <span class="hidden md:inline"><i class="fa-solid fa-network-wired text-cyan-400 text-[10px]"></i> LATENCY: <span id="ping-text" class="text-cyan-300">12ms</span></span>
+        </div>
+        <div class="flex items-center gap-4">
+          <span>UPTIME: <span id="uptime-clock" class="text-emerald-400">00:00:00</span></span>
+          <span class="text-xs font-bold text-cyan-400" id="live-time">00:00:00</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT AREA -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full relative z-10">
+      
+      <!-- PESTA�A 1: ADD_MEMBER MODULE -->
+      <section id="tab-registro" class="space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Formulario Registro -->
+          <div class="lg:col-span-4 bg-slate-950/80 border border-cyan-500/40 p-5 cyber-tile shadow-neon-cyan h-fit">
+            <div class="flex items-center gap-2 mb-4 pb-2 border-b border-cyan-500/30 text-cyan-400 font-bold text-sm">
+              <i class="fa-solid fa-id-card"></i>
+              <h2>[ REGISTER_NEW_MEMBER ]</h2>
+            </div>
+
+            <form id="register-form" class="space-y-3">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">&gt; Nombres *</label>
+                <input type="text" id="reg-nombres" required placeholder="EJ: CARLOS EDGAR" class="w-full bg-slate-900 border border-cyan-500/40 px-3 py-2 text-xs text-cyan-300 placeholder-slate-600 focus:outline-none focus:border-cyan-400 focus:shadow-neon-cyan">
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">&gt; Apellidos *</label>
+                <input type="text" id="reg-apellidos" required placeholder="EJ: RAMOS BENITEZ" class="w-full bg-slate-900 border border-cyan-500/40 px-3 py-2 text-xs text-cyan-300 placeholder-slate-600 focus:outline-none focus:border-cyan-400 focus:shadow-neon-cyan">
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">&gt; DNI (8 DIG) *</label>
+                  <input type="text" id="reg-dni" maxlength="8" pattern="[0-9]{8}" required placeholder="72819203" class="w-full bg-slate-900 border border-cyan-500/40 px-3 py-2 text-xs text-cyan-300 placeholder-slate-600 focus:outline-none focus:border-cyan-400 focus:shadow-neon-cyan font-mono">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">&gt; Edad *</label>
+                  <input type="number" id="reg-edad" min="10" max="99" required placeholder="20" class="w-full bg-slate-900 border border-cyan-500/40 px-3 py-2 text-xs text-cyan-300 placeholder-slate-600 focus:outline-none focus:border-cyan-400 focus:shadow-neon-cyan">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">&gt; Fecha de Ingreso *</label>
+                <input type="date" id="reg-fecha-ingreso" required class="w-full bg-slate-900 border border-cyan-500/40 px-3 py-2 text-xs text-cyan-300 focus:outline-none focus:border-cyan-400 focus:shadow-neon-cyan">
+              </div>
+
+              <button type="submit" class="cyber-btn w-full mt-3 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs tracking-widest shadow-neon-green flex items-center justify-center gap-2">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>[ EXECUTE_COMMIT_DATA ]</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Data Grid / Tabla Integrantes -->
+          <div class="lg:col-span-8 bg-slate-950/80 border border-cyan-500/40 p-5 cyber-tile shadow-neon-cyan flex flex-col">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-2 border-b border-cyan-500/30">
+              <div class="text-cyan-400 font-bold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-database"></i>
+                <h2>[ DATABASE_MEMBERS_GRID ]</h2>
+              </div>
+              <div class="relative w-full sm:w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-cyan-500 text-xs"></i>
+                <input type="text" id="search-member" placeholder="SEARCH_BY_DNI_OR_NAME..." class="w-full bg-slate-900 border border-cyan-500/40 pl-8 pr-3 py-1.5 text-xs text-cyan-300 placeholder-slate-600 focus:outline-none focus:border-cyan-400">
+              </div>
+            </div>
+
+            <div class="overflow-x-auto flex-1">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-cyan-500/30 text-cyan-400 bg-cyan-950/30 uppercase tracking-wider">
+                    <th class="py-2.5 px-3">DNI</th>
+                    <th class="py-2.5 px-3">INTEGRANTE</th>
+                    <th class="py-2.5 px-3 text-center">EDAD</th>
+                    <th class="py-2.5 px-3">INGRESO</th>
+                    <th class="py-2.5 px-3 text-right">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody id="members-table-body" class="divide-y divide-slate-800 text-slate-300 font-mono">
+                  <!-- Data Injected via JS -->
+                </tbody>
+              </table>
+
+              <div id="members-empty-state" class="hidden py-10 text-center text-slate-500 text-xs">
+                <i class="fa-solid fa-terminal text-2xl mb-2 text-slate-700"></i>
+                <p>&gt; NO_RECORDS_FOUND_IN_SYSTEM</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- PESTA�A 2: ATTENDANCE_LOG MODULE -->
+      <section id="tab-asistencia" class="hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Control Panel Marcado Asistencia -->
+          <div class="lg:col-span-5 bg-slate-950/80 border border-emerald-500/40 p-5 cyber-tile shadow-neon-green h-fit">
+            <div class="flex items-center gap-2 mb-4 pb-2 border-b border-emerald-500/30 text-emerald-400 font-bold text-sm">
+              <i class="fa-solid fa-fingerprint"></i>
+              <h2>[ MARK_ATTENDANCE_TERMINAL ]</h2>
+            </div>
+
+            <form id="attendance-form" class="space-y-4">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">&gt; SELECCIONAR INTEGRANTE *</label>
+                <select id="att-member-select" required class="w-full bg-slate-900 border border-emerald-500/40 px-3 py-2 text-xs text-emerald-300 focus:outline-none focus:border-emerald-400">
+                  <option value="">-- SEARCH / SELECT INTEGRANTE --</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-2">&gt; ESTADO DE ASISTENCIA</label>
+                <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+                  <label class="cursor-pointer">
+                    <input type="radio" name="att-status" value="PRESENT" checked class="peer sr-only">
+                    <div class="p-2.5 border border-slate-700 bg-slate-900/60 text-slate-400 text-center peer-checked:border-emerald-400 peer-checked:bg-emerald-950/50 peer-checked:text-emerald-300 peer-checked:shadow-neon-green transition">
+                      [ PRESENT ]
+                    </div>
+                  </label>
+
+                  <label class="cursor-pointer">
+                    <input type="radio" name="att-status" value="LATE" class="peer sr-only">
+                    <div class="p-2.5 border border-slate-700 bg-slate-900/60 text-slate-400 text-center peer-checked:border-yellow-400 peer-checked:bg-yellow-950/50 peer-checked:text-yellow-300 transition">
+                      [ LATE ]
+                    </div>
+                  </label>
+
+                  <label class="cursor-pointer">
+                    <input type="radio" name="att-status" value="ABSENT" class="peer sr-only">
+                    <div class="p-2.5 border border-slate-700 bg-slate-900/60 text-slate-400 text-center peer-checked:border-rose-500 peer-checked:bg-rose-950/50 peer-checked:text-rose-300 transition">
+                      [ ABSENT ]
+                    </div>
+                  </label>
+
+                  <label class="cursor-pointer">
+                    <input type="radio" name="att-status" value="JUSTIFIED" class="peer sr-only">
+                    <div class="p-2.5 border border-slate-700 bg-slate-900/60 text-slate-400 text-center peer-checked:border-cyan-400 peer-checked:bg-cyan-950/50 peer-checked:text-cyan-300 transition">
+                      [ JUSTIFIED ]
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">&gt; FECHA</label>
+                  <input type="date" id="att-date" required class="w-full bg-slate-900 border border-emerald-500/40 px-3 py-2 text-xs text-emerald-300">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">&gt; HORA DE MARCA</label>
+                  <input type="time" id="att-time" required class="w-full bg-slate-900 border border-emerald-500/40 px-3 py-2 text-xs text-emerald-300">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">&gt; OBSERVACI�N / LOG NOTE</label>
+                <textarea id="att-notes" rows="2" placeholder="OBSERVACION OPCIONAL..." class="w-full bg-slate-900 border border-emerald-500/40 px-3 py-2 text-xs text-emerald-300 placeholder-slate-600 focus:outline-none"></textarea>
+              </div>
+
+              <button type="submit" class="cyber-btn w-full mt-3 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-xs tracking-widest shadow-neon-cyan flex items-center justify-center gap-2">
+                <i class="fa-solid fa-check"></i>
+                <span>[ COMMIT_ATTENDANCE_LOG ]</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Tabla Log Asistencia -->
+          <div class="lg:col-span-7 bg-slate-950/80 border border-emerald-500/40 p-5 cyber-tile shadow-neon-green flex flex-col">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-2 border-b border-emerald-500/30">
+              <div class="text-emerald-400 font-bold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <h2>[ ATTENDANCE_CYBER_LOG ]</h2>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="date" id="filter-att-date" class="bg-slate-900 border border-emerald-500/40 px-2 py-1 text-xs text-emerald-300">
+                <button id="clear-att-filter" class="text-xs text-slate-500 hover:text-emerald-400">CLEAR</button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto flex-1">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-emerald-500/30 text-emerald-400 bg-emerald-950/30 uppercase tracking-wider">
+                    <th class="py-2.5 px-3">FECHA/HORA</th>
+                    <th class="py-2.5 px-3">INTEGRANTE</th>
+                    <th class="py-2.5 px-3">DNI</th>
+                    <th class="py-2.5 px-3 text-center">STATUS</th>
+                  </tr>
+                </thead>
+                <tbody id="attendance-table-body" class="divide-y divide-slate-800 text-slate-300 font-mono">
+                  <!-- Attendance Data Injected JS -->
+                </tbody>
+              </table>
+
+              <div id="attendance-empty-state" class="hidden py-10 text-center text-slate-500 text-xs">
+                <i class="fa-solid fa-clipboard-question text-2xl mb-2 text-slate-700"></i>
+                <p>&gt; NO_ATTENDANCE_LOGS_FOUND</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- PESTA�A 3: SYSTEM_STATUS / DASHBOARD -->
+      <section id="tab-status" class="hidden space-y-6">
+        
+        <!-- CARDS DE ESTAD�STICAS CYBER -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <div class="bg-slate-950/90 border border-cyan-500/40 p-4 cyber-tile shadow-neon-cyan flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">&gt; TOTAL_MEMBERS</p>
+              <h3 id="stat-total-members" class="text-3xl font-extrabold text-cyan-300 mt-1">0</h3>
+            </div>
+            <div class="text-2xl text-cyan-400 opacity-60"><i class="fa-solid fa-users"></i></div>
+          </div>
+
+          <div class="bg-slate-950/90 border border-emerald-500/40 p-4 cyber-tile shadow-neon-green flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">&gt; PRESENT_TODAY</p>
+              <h3 id="stat-present-today" class="text-3xl font-extrabold text-emerald-400 mt-1">0</h3>
+            </div>
+            <div class="text-2xl text-emerald-400 opacity-60"><i class="fa-solid fa-user-check"></i></div>
+          </div>
+
+          <div class="bg-slate-950/90 border border-yellow-500/40 p-4 cyber-tile shadow-neon-cyan flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">&gt; LATE_TODAY</p>
+              <h3 id="stat-late-today" class="text-3xl font-extrabold text-yellow-400 mt-1">0</h3>
+            </div>
+            <div class="text-2xl text-yellow-400 opacity-60"><i class="fa-solid fa-business-time"></i></div>
+          </div>
+
+          <div class="bg-slate-950/90 border border-rose-500/40 p-4 cyber-tile shadow-neon-red flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">&gt; ABSENT_TODAY</p>
+              <h3 id="stat-absent-today" class="text-3xl font-extrabold text-rose-500 mt-1">0</h3>
+            </div>
+            <div class="text-2xl text-rose-500 opacity-60"><i class="fa-solid fa-user-xmark"></i></div>
+          </div>
+
+        </div>
+
+        <!-- CONSOLA SYSTEM LOG OUTPUT -->
+        <div class="bg-slate-950 border border-cyan-500/40 p-5 cyber-tile shadow-neon-cyan">
+          <div class="flex items-center justify-between mb-3 pb-2 border-b border-cyan-500/30">
+            <h3 class="text-xs font-bold text-cyan-400 flex items-center gap-2">
+              <i class="fa-solid fa-terminal"></i> [ SYSTEM_EVENT_LOG_STREAM ]
+            </h3>
+            <span class="text-[10px] text-slate-500">LIVE_DIAGNOSTICS</span>
+          </div>
+
+          <div id="system-log-terminal" class="bg-black p-4 font-mono text-xs text-emerald-400 space-y-1.5 h-64 overflow-y-auto border border-cyan-900/50">
+            <!-- Dynamic Logs Injected Here -->
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- FOOTER CYBERNETICO -->
+    <footer class="border-t border-cyan-500/30 bg-slate-950/90 py-3 mt-auto">
+      <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center text-[10px] text-slate-500 gap-2">
+        <span>CETPRO SYSTEM CORE v2.0 // ALL RIGHTS RESERVED</span>
+        <span class="text-cyan-500">FIREBASE_FIRESTORE_SYNC // ENCRYPTED_SSL</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- SCRIPT CON FIREBASE SDK V10 ES MODULES -->
+  <script type="module">
+    // Importaciones oficiales Firebase v10 CDN
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      getDocs, 
+      doc, 
+      updateDoc, 
+      deleteDoc, 
+      onSnapshot,
+      serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Configuraci�n proporcionada por el usuario
+    const firebaseConfig = {
+      apiKey: "AIzaSyCGsxm7_PwsCsjHt305XBWsBn-MbFrIxDw",
+      authDomain: "integrantes-del-cetpro.firebaseapp.com",
+      projectId: "integrantes-del-cetpro",
+      storageBucket: "integrantes-del-cetpro.firebasestorage.app",
+      messagingSenderId: "1021569362589",
+      appId: "1:1021569362589:web:0f945ed861538756240274",
+      measurementId: "G-VVM41HWNEV"
+    };
+
+    let db = null;
+    let isFirebaseActive = false;
+
+    // Inicializaci�n de Firebase & Firestore
+    try {
+      const app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      isFirebaseActive = true;
+      console.log("%c[CYBER_CORE] Firebase Firestore Initialized Successfully", "color: #00ff66; font-weight: bold;");
+    } catch (e) {
+      console.warn("[CYBER_CORE] Firebase initialization failed. Fallback to LocalStorage Engine.", e);
+      isFirebaseActive = false;
+    }
+
+    // Estado local con fallback
+    let members = JSON.parse(localStorage.getItem('cetpro_cyber_members')) || [
+      { id: '1', nombres: 'CARLOS', apellidos: 'GUTIERREZ', dni: '71829384', edad: '21', fechaIngreso: '2026-03-01' },
+      { id: '2', nombres: 'ANA MARIA', apellidos: 'QUISPE MENDOZA', dni: '74829102', edad: '19', fechaIngreso: '2026-03-02' }
+    ];
+
+    let attendanceRecords = JSON.parse(localStorage.getItem('cetpro_cyber_attendance')) || [];
+
+    // MATRIX RAIN ANIMATION CANVAS
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%&*';
+    const fontSize = 12;
+    let columns = Math.floor(canvas.width / fontSize);
+    let drops = Array(columns).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(3, 7, 18, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#00ff66';
+      ctx.font = `${fontSize}px 'JetBrains Mono', monospace`;
+
+      columns = Math.floor(canvas.width / fontSize);
+      if (drops.length < columns) {
+        drops = Array(columns).fill(1);
+      }
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars.charAt(Math.floor(Math.random() * chars.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
         }
-        markers = data.map(d => ({
-          lat: parseFloat(d.lat), lon: parseFloat(d.lon),
-          name: (d.display_name || '').split(',')[0].slice(0, 28),
-          full: d.display_name, type: d.type || d.class
-        }));
-        markers.forEach((m, i) => {
-          const code = 'P' + String(i + 1).padStart(2, '0');
-          const acts = el('div', { class: 'fa' },
-            el('button', { class: 'btn small', type: 'button', onclick: () => {
-              $('#tr-lat').textContent = m.lat.toFixed(5);
-              $('#tr-lon').textContent = m.lon.toFixed(5);
-              $('#tr-obj').textContent = m.name;
-              $('#tr-sts').textContent = 'PIN';
-              setLinks(m.lat, m.lon, m.full || m.name);
-              logLine('pin ' + m.name, true);
-            }}, 'Ver'),
-            el('a', { class: 'btn small', href: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(m.full || m.name), target: '_blank', rel: 'noopener' }, 'Maps'),
-            el('a', { class: 'btn small', href: 'https://www.booking.com/searchresults.html?ss=' + encodeURIComponent(m.name), target: '_blank', rel: 'noopener' }, 'Reservar')
-          );
-          list.append(el('li', {},
-            el('div', { class: 'code' }, code),
-            el('div', { class: 'fn' }, m.name),
-            acts,
-            el('div', { class: 'fm' }, (m.type || 'place') + '  ·  ' + m.lat.toFixed(3) + ', ' + m.lon.toFixed(3))
-          ));
-        });
-        const first = markers[0];
-        $('#tr-obj').textContent = first.name;
-        $('#tr-lat').textContent = first.lat.toFixed(5);
-        $('#tr-lon').textContent = first.lon.toFixed(5);
-        $('#tr-sts').textContent = 'FOUND';
-        setLinks(first.lat, first.lon, first.full || first.name);
-        setMsg(msg, markers.length + ' resultado(s).', 'ok');
-        logEv('T5 search');
-        bump(0.4);
-      } catch (e) {
-        setMsg(msg, 'No se pudo consultar OSM. Usa Maps / Reservas / Trip.', 'err');
-        setLinks(0, 0, q);
-        $('#tr-gmaps').href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
-        $('#tr-book').href = 'https://www.booking.com/searchresults.html?ss=' + encodeURIComponent(q);
-        $('#tr-trip').href = 'https://www.tripadvisor.com/Search?q=' + encodeURIComponent(q);
-        $('#tr-osm').href = 'https://www.openstreetmap.org/search?query=' + encodeURIComponent(q);
+        drops[i]++;
+      }
+    }
+    setInterval(drawMatrix, 45);
+
+    // TYPEWRITER ENTRY EFFECT
+    const typeLines = [
+      "&gt; INITIALIZING CETPRO CYBER_CORE v2.0...",
+      "&gt; CONNECTING TO FIREBASE CLOUD DATABASE...",
+      "&gt; LOADING MODULES: [ADD_MEMBER], [ATTENDANCE_LOG]...",
+      "&gt; CHECKING SECURITY PROTOCOLS... OK",
+      "&gt; STATUS: ACCESS_GRANTED. WELCOME OPERATOR."
+    ];
+
+    const typewriterBox = document.getElementById('typewriter-box');
+    const introAction = document.getElementById('intro-action');
+    let lineIdx = 0;
+
+    function typeWriterSequence() {
+      if (lineIdx < typeLines.length) {
+        const p = document.createElement('p');
+        p.className = 'glitch-text';
+        typewriterBox.appendChild(p);
+        
+        let charIdx = 0;
+        const currentText = typeLines[lineIdx];
+        
+        const timer = setInterval(() => {
+          if (charIdx < currentText.length) {
+            p.innerHTML += currentText.charAt(charIdx);
+            charIdx++;
+          } else {
+            clearInterval(timer);
+            lineIdx++;
+            setTimeout(typeWriterSequence, 200);
+          }
+        }, 20);
+      } else {
+        introAction.classList.remove('opacity-0');
+      }
+    }
+    typeWriterSequence();
+
+    // INTRO ENTRY BUTTON
+    document.getElementById('btn-enter').addEventListener('click', () => {
+      document.getElementById('screen-intro').classList.add('hidden');
+      document.getElementById('app-content').classList.remove('hidden');
+      document.getElementById('app-content').classList.add('flex');
+      initApp();
+    });
+
+    // UPTIME & CLOCK
+    let uptimeSeconds = 0;
+    setInterval(() => {
+      uptimeSeconds++;
+      const hrs = String(Math.floor(uptimeSeconds / 3600)).padStart(2, '0');
+      const mins = String(Math.floor((uptimeSeconds % 3600) / 60)).padStart(2, '0');
+      const secs = String(uptimeSeconds % 60).padStart(2, '0');
+      document.getElementById('uptime-clock').textContent = `${hrs}:${mins}:${secs}`;
+
+      const now = new Date();
+      document.getElementById('live-time').textContent = now.toTimeString().split(' ')[0];
+    }, 1000);
+
+    // TAB SYSTEM NAVIGATION
+    const tabs = {
+      registro: { btn: document.getElementById('tab-btn-registro'), sec: document.getElementById('tab-registro') },
+      asistencia: { btn: document.getElementById('tab-btn-asistencia'), sec: document.getElementById('tab-asistencia') },
+      status: { btn: document.getElementById('tab-btn-status'), sec: document.getElementById('tab-status') }
+    };
+
+    function switchTab(targetKey) {
+      Object.keys(tabs).forEach(key => {
+        const t = tabs[key];
+        if (key === targetKey) {
+          t.sec.classList.remove('hidden');
+          t.btn.className = "cyber-tab cyber-btn px-4 py-2 text-xs font-bold flex items-center gap-2 border border-cyan-500/50 bg-cyan-950/60 text-cyan-300 shadow-neon-cyan";
+        } else {
+          t.sec.classList.add('hidden');
+          t.btn.className = "cyber-tab cyber-btn px-4 py-2 text-xs font-bold flex items-center gap-2 border border-slate-800 bg-slate-900/40 text-slate-400 hover:text-cyan-400 transition";
+        }
+      });
+    }
+
+    tabs.registro.btn.addEventListener('click', () => switchTab('registro'));
+    tabs.asistencia.btn.addEventListener('click', () => switchTab('asistencia'));
+    tabs.status.btn.addEventListener('click', () => switchTab('status'));
+
+    // TOAST NOTIFICATION LOGS
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+
+      const borderCol = type === 'success' ? 'border-emerald-500 text-emerald-300 shadow-neon-green' : type === 'error' ? 'border-rose-500 text-rose-300 shadow-neon-red' : 'border-cyan-500 text-cyan-300 shadow-neon-cyan';
+
+      toast.className = `pointer-events-auto bg-slate-950/95 border ${borderCol} p-3 text-xs font-mono flex items-center gap-2 shadow-lg cyber-tile transition-all duration-300`;
+      toast.innerHTML = `<i class="fa-solid fa-terminal text-sm"></i> <span>&gt; ${msg}</span>`;
+
+      container.appendChild(toast);
+      logSystemEvent(msg, type);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function logSystemEvent(text, type = 'info') {
+      const logTerm = document.getElementById('system-log-terminal');
+      if (!logTerm) return;
+
+      const p = document.createElement('p');
+      const timestamp = new Date().toLocaleTimeString();
+      const colorClass = type === 'error' ? 'text-rose-400' : type === 'success' ? 'text-emerald-400' : 'text-cyan-400';
+
+      p.className = colorClass;
+      p.innerHTML = `<span class="text-slate-500">[${timestamp}]</span> &gt; ${text}`;
+      logTerm.appendChild(p);
+      logTerm.scrollTop = logTerm.scrollHeight;
+    }
+
+    // FIREBASE OR LOCAL INIT
+    function initApp() {
+      setTodayDates();
+
+      if (isFirebaseActive && db) {
+        document.getElementById('db-engine-badge').textContent = 'FIRESTORE_SYNC_ONLINE';
+        
+        // Listen Integrantes Realtime
+        try {
+          onSnapshot(collection(db, "integrantes"), (snapshot) => {
+            members = [];
+            snapshot.forEach(docSnap => {
+              members.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            saveLocalBackup();
+            renderMembers();
+            populateMemberSelect();
+            updateStats();
+          }, (err) => {
+            console.warn("Firestore Read Error:", err);
+            document.getElementById('db-engine-badge').textContent = 'LOCAL_STORAGE_FALLBACK';
+            renderAll();
+          });
+
+          // Listen Asistencia Realtime
+          onSnapshot(collection(db, "asistencias"), (snapshot) => {
+            attendanceRecords = [];
+            snapshot.forEach(docSnap => {
+              attendanceRecords.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            saveLocalBackup();
+            renderAttendance();
+            updateStats();
+          }, (err) => {
+            console.warn("Firestore Attendance Read Error:", err);
+            renderAll();
+          });
+
+        } catch (e) {
+          renderAll();
+        }
+      } else {
+        document.getElementById('db-engine-badge').textContent = 'LOCAL_STORAGE_ENGINE';
+        renderAll();
       }
     }
 
-    function clearAll() {
-      me = null; markers = [];
-      $('#tr-results').replaceChildren();
-      $('#tr-actions').hidden = true;
-      $('#tr-q').value = '';
-      $('#tr-obj').textContent = '—';
-      $('#tr-lat').textContent = '—';
-      $('#tr-lon').textContent = '—';
-      $('#tr-acc').textContent = '—';
-      $('#tr-sts').textContent = 'IDLE';
-      setMsg($('#tr-msg'), '');
-      $('#tr-log').replaceChildren();
+    function renderAll() {
+      renderMembers();
+      populateMemberSelect();
+      renderAttendance();
+      updateStats();
     }
 
-    $('#tr-me').addEventListener('click', locateMe);
-    $('#tr-search').addEventListener('click', searchPlaces);
-    $('#tr-clear').addEventListener('click', clearAll);
-    $('#tr-q').addEventListener('keydown', e => { if (e.key === 'Enter') searchPlaces(); });
+    function saveLocalBackup() {
+      localStorage.setItem('cetpro_cyber_members', JSON.stringify(members));
+      localStorage.setItem('cetpro_cyber_attendance', JSON.stringify(attendanceRecords));
+    }
 
-    const obs = new MutationObserver(() => {
-      if (!$('#s-track').hidden) sizeMap();
+    function setTodayDates() {
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      const time = now.toTimeString().slice(0, 5);
+
+      document.getElementById('reg-fecha-ingreso').value = today;
+      document.getElementById('att-date').value = today;
+      document.getElementById('att-time').value = time;
+    }
+
+    // REGISTRO DE INTEGRANTES
+    const registerForm = document.getElementById('register-form');
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const nombres = document.getElementById('reg-nombres').value.trim().toUpperCase();
+      const apellidos = document.getElementById('reg-apellidos').value.trim().toUpperCase();
+      const dni = document.getElementById('reg-dni').value.trim();
+      const edad = document.getElementById('reg-edad').value.trim();
+      const fechaIngreso = document.getElementById('reg-fecha-ingreso').value;
+
+      if (dni.length !== 8) {
+        showToast("DNI inv�lido. Debe tener exactamente 8 d�gitos.", "error");
+        return;
+      }
+
+      if (members.some(m => m.dni === dni)) {
+        showToast(`DNI ${dni} ya registrado en el sistema.`, "error");
+        return;
+      }
+
+      const newMember = { nombres, apellidos, dni, edad, fechaIngreso, createdAt: new Date().toISOString() };
+
+      if (isFirebaseActive && db) {
+        try {
+          await addDoc(collection(db, "integrantes"), newMember);
+          showToast(`Integrante ${nombres} guardado en Firestore.`, "success");
+        } catch (err) {
+          saveLocalMember(newMember);
+        }
+      } else {
+        saveLocalMember(newMember);
+      }
+
+      registerForm.reset();
+      setTodayDates();
     });
-    obs.observe($('#s-track'), { attributes: true, attributeFilter: ['hidden'] });
-    addEventListener('resize', () => { if (!$('#s-track').hidden) sizeMap(); });
-    sizeMap();
-  })();
 
-  $('#g-user').focus();
-})();
-</script>
+    function saveLocalMember(m) {
+      m.id = Date.now().toString();
+      members.push(m);
+      saveLocalBackup();
+      renderMembers();
+      populateMemberSelect();
+      updateStats();
+      showToast(`Integrante ${m.nombres} guardado localmente.`);
+    }
+
+    function renderMembers() {
+      const search = document.getElementById('search-member').value.toLowerCase().trim();
+      const tbody = document.getElementById('members-table-body');
+      const empty = document.getElementById('members-empty-state');
+      tbody.innerHTML = '';
+
+      const filtered = members.filter(m => 
+        m.nombres.toLowerCase().includes(search) || 
+        m.apellidos.toLowerCase().includes(search) || 
+        m.dni.includes(search)
+      );
+
+      if (filtered.length === 0) {
+        empty.classList.remove('hidden');
+      } else {
+        empty.classList.add('hidden');
+        filtered.forEach(m => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-cyan-950/30 transition-colors border-b border-slate-800/60";
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-bold text-cyan-400">${m.dni}</td>
+            <td class="py-2.5 px-3 text-slate-200">${m.apellidos}, ${m.nombres}</td>
+            <td class="py-2.5 px-3 text-center text-slate-400">${m.edad}</td>
+            <td class="py-2.5 px-3 text-slate-400">${m.fechaIngreso || '-'}</td>
+            <td class="py-2.5 px-3 text-right">
+              <button onclick="window.editMember('${m.id}')" class="text-slate-400 hover:text-cyan-400 px-1.5 py-1" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button onclick="window.deleteMember('${m.id}')" class="text-slate-400 hover:text-rose-500 px-1.5 py-1" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    document.getElementById('search-member').addEventListener('input', renderMembers);
+
+    // EDIT MEMBER MODAL
+    window.editMember = (id) => {
+      const m = members.find(item => item.id === id);
+      if (!m) return;
+
+      document.getElementById('edit-member-id').value = m.id;
+      document.getElementById('edit-nombre').value = m.nombres;
+      document.getElementById('edit-apellido').value = m.apellidos;
+      document.getElementById('edit-dni').value = m.dni;
+      document.getElementById('edit-edad').value = m.edad;
+      document.getElementById('edit-fecha').value = m.fechaIngreso || '';
+
+      document.getElementById('edit-modal').classList.remove('hidden');
+    };
+
+    document.getElementById('close-edit-modal').onclick = () => document.getElementById('edit-modal').classList.add('hidden');
+    document.getElementById('cancel-edit-btn').onclick = () => document.getElementById('edit-modal').classList.add('hidden');
+
+    document.getElementById('edit-member-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('edit-member-id').value;
+      const data = {
+        nombres: document.getElementById('edit-nombre').value.trim().toUpperCase(),
+        apellidos: document.getElementById('edit-apellido').value.trim().toUpperCase(),
+        dni: document.getElementById('edit-dni').value.trim(),
+        edad: document.getElementById('edit-edad').value.trim(),
+        fechaIngreso: document.getElementById('edit-fecha').value
+      };
+
+      if (isFirebaseActive && db) {
+        try {
+          await updateDoc(doc(db, "integrantes", id), data);
+          showToast("Integrante actualizado en Firestore.");
+        } catch (err) {
+          updateLocalMember(id, data);
+        }
+      } else {
+        updateLocalMember(id, data);
+      }
+
+      document.getElementById('edit-modal').classList.add('hidden');
+    });
+
+    function updateLocalMember(id, data) {
+      const idx = members.findIndex(m => m.id === id);
+      if (idx !== -1) {
+        members[idx] = { ...members[idx], ...data };
+        saveLocalBackup();
+        renderMembers();
+        populateMemberSelect();
+        showToast("Integrante actualizado.");
+      }
+    }
+
+    // DELETE MEMBER
+    window.deleteMember = async (id) => {
+      if (!confirm("�CONFIRMAR ELIMINACI�N DE INTEGRANTE DEL SISTEMA?")) return;
+
+      if (isFirebaseActive && db) {
+        try {
+          await deleteDoc(doc(db, "integrantes", id));
+          showToast("Registro eliminado de Firestore.", "error");
+        } catch (err) {
+          deleteLocalMember(id);
+        }
+      } else {
+        deleteLocalMember(id);
+      }
+    };
+
+    function deleteLocalMember(id) {
+      members = members.filter(m => m.id !== id);
+      saveLocalBackup();
+      renderMembers();
+      populateMemberSelect();
+      updateStats();
+      showToast("Registro eliminado.", "error");
+    }
+
+    // ATTENDANCE LOG
+    function populateMemberSelect() {
+      const sel = document.getElementById('att-member-select');
+      sel.innerHTML = '<option value="">-- SEARCH / SELECT INTEGRANTE --</option>';
+      members.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = `[${m.dni}] ${m.apellidos}, ${m.nombres}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    const attendanceForm = document.getElementById('attendance-form');
+    attendanceForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const memberId = document.getElementById('att-member-select').value;
+      if (!memberId) {
+        showToast("Seleccione un integrante v�lido.", "error");
+        return;
+      }
+
+      const m = members.find(item => item.id === memberId);
+      if (!m) return;
+
+      const status = document.querySelector('input[name="att-status"]:checked').value;
+      const date = document.getElementById('att-date').value;
+      const time = document.getElementById('att-time').value;
+      const notes = document.getElementById('att-notes').value.trim();
+
+      const record = {
+        memberId: m.id,
+        dni: m.dni,
+        memberName: `${m.apellidos}, ${m.nombres}`,
+        status,
+        date,
+        time,
+        notes,
+        timestamp: new Date(`${date}T${time}`).getTime() || Date.now()
+      };
+
+      if (isFirebaseActive && db) {
+        try {
+          await addDoc(collection(db, "asistencias"), record);
+          showToast(`Asistencia de ${m.nombres} registrada [${status}].`);
+        } catch (err) {
+          saveLocalAttendance(record);
+        }
+      } else {
+        saveLocalAttendance(record);
+      }
+
+      document.getElementById('att-notes').value = '';
+    });
+
+    function saveLocalAttendance(rec) {
+      rec.id = Date.now().toString();
+      attendanceRecords.unshift(rec);
+      saveLocalBackup();
+      renderAttendance();
+      updateStats();
+      showToast("Asistencia marcada correctamente.");
+    }
+
+    function renderAttendance() {
+      const filterDate = document.getElementById('filter-att-date').value;
+      const tbody = document.getElementById('attendance-table-body');
+      const empty = document.getElementById('attendance-empty-state');
+      tbody.innerHTML = '';
+
+      let list = [...attendanceRecords].sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+      if (filterDate) {
+        list = list.filter(r => r.date === filterDate);
+      }
+
+      if (list.length === 0) {
+        empty.classList.remove('hidden');
+      } else {
+        empty.classList.add('hidden');
+        list.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-emerald-950/20 transition-colors border-b border-slate-800/60";
+
+          let colorBadge = "border-emerald-500 text-emerald-300";
+          if (r.status === 'LATE') colorBadge = "border-yellow-400 text-yellow-300";
+          if (r.status === 'ABSENT') colorBadge = "border-rose-500 text-rose-400";
+          if (r.status === 'JUSTIFIED') colorBadge = "border-cyan-400 text-cyan-300";
+
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 text-slate-400">${r.date} <span class="text-cyan-400">${r.time || ''}</span></td>
+            <td class="py-2.5 px-3 font-bold text-slate-200">${r.memberName}</td>
+            <td class="py-2.5 px-3 font-mono text-cyan-400">${r.dni}</td>
+            <td class="py-2.5 px-3 text-center">
+              <span class="border ${colorBadge} px-2 py-0.5 text-[10px] font-bold tracking-wider">
+                ${r.status}
+              </span>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    document.getElementById('filter-att-date').addEventListener('change', renderAttendance);
+    document.getElementById('clear-att-filter').addEventListener('click', () => {
+      document.getElementById('filter-att-date').value = '';
+      renderAttendance();
+    });
+
+    // STATS UPDATE
+    function updateStats() {
+      document.getElementById('stat-total-members').textContent = members.length;
+
+      const today = new Date().toISOString().split('T')[0];
+      const todayLogs = attendanceRecords.filter(r => r.date === today);
+
+      document.getElementById('stat-present-today').textContent = todayLogs.filter(r => r.status === 'PRESENT').length;
+      document.getElementById('stat-late-today').textContent = todayLogs.filter(r => r.status === 'LATE').length;
+      document.getElementById('stat-absent-today').textContent = todayLogs.filter(r => r.status === 'ABSENT').length;
+    }
+
+  </script>
 </body>
 </html>
